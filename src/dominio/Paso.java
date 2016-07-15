@@ -70,6 +70,7 @@ public class Paso implements Comparable<Paso> {
 				throw new TramiteException(TramiteException.FECHA_LIMITE);
 			} 
 		} else {
+                   
 			this.conFechaLimite = conFechaLimite;
 		}
 	}
