@@ -21,7 +21,6 @@ public class Campo implements Comparable<Campo> {
 		valorDefecto = "";
 		obligatorio = false;
 		esNuevo = true;
-                System.out.println("hola");
 	}
 	
 	/**
