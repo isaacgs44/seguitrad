@@ -6,7 +6,6 @@ public enum Tipo {
 	FECHA ("Fecha"),
 	OPCMULT ("Opciones múltiples"),
 	OPCEXCL ("Opciones excluyentes");
-	
 	private final String nombreTipo;
 	
 	private Tipo(String nombreTipo) {
@@ -16,7 +15,7 @@ public enum Tipo {
 	public String getTipo() {
 		return nombreTipo;
 	}
-	
+	  
 	public String toString() {
 		return getTipo();
 	}

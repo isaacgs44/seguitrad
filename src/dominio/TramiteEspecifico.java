@@ -106,6 +106,7 @@ public class TramiteEspecifico {
     }
 
     public void insertarTramiteEspecifico() throws BaseDatosException, SQLException {
+        System.out.println("Llega a la clase Tramite Especifico pero no almacena");
         //insertamos campos por default
         String[] valoresTramiteesp = new String[5];
         String consulta = "INSERT INTO tramites_especificos ('idRegistro','Nombre_del_solicitante', 'Título',"
@@ -199,34 +200,5 @@ public class TramiteEspecifico {
     public ArrayList<Campo> getCampos() {
         return campos;
     }
-    
-    	public void modificarCampo(Campo campo, String[] valor) {
-		int posicion = buscarCampo(campo.getNombreCampo());
-		if (posicion != -1) {
-			valores.set(posicion, valor);
-		} else {
-			agregarCampo(campo, valor);
-		}
-	}
-        
-	public int buscarPasoEspecifico(String nombre, int repeticion) {
-		// buscar el Paso en ArrayList
-		for (int i = 0; i < pasosEspecificos.size(); i++) {
-			if (pasosEspecificos.get(i).getNombrePaso().compareToIgnoreCase(nombre) == 0 && pasosEspecificos.get(i).getRepeticion() == repeticion) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	public PasoEspecifico obtenerPasoEspecifico(int posicion) {
-		if (posicion < 0 || posicion >= pasosEspecificos.size()) {
-			return null;
-		} else {
-			return pasosEspecificos.get(posicion);
-		}
-	}
-
-    
     
 }

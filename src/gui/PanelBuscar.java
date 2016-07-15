@@ -98,7 +98,6 @@ public class PanelBuscar extends JPanel implements ActionListener {
 	 */
 	public PanelBuscar(ArrayList<TramiteEspecifico> listaTramites) {
 		setLayout(null);
-
 		this.listaTramites = listaTramites;
 		checkNombre = new JCheckBox("Nombre");
 		checkNombre.setBounds(100, 20, 100, 30);
@@ -136,6 +135,7 @@ public class PanelBuscar extends JPanel implements ActionListener {
 		scrollPane.setBounds(95, 130, 650, 200);
 		add(scrollPane);
 		setVisible(true);
+                buscar("", "");
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package gui;
 
+import java.sql.SQLException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -104,14 +105,18 @@ public class DialogoModificarTramite extends JDialog implements ActionListener {
 		} else if (e.getSource().equals(anteriorBoton)) {
 			anterior();
 		} else if (e.getSource().equals(aceptarBoton)) {
-			aceptar();
+            try {
+                aceptar();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
 		}
 	}
 
 	/**
 	 * 
 	 */
-	private void aceptar() {
+	private void aceptar() throws SQLException {
 		try {
 			JOptionPane.showMessageDialog(this, "El sistema se está preparando para modificar el trámite."
 					+ "\nEsta operación puede durar algunos segundos "
@@ -120,6 +125,7 @@ public class DialogoModificarTramite extends JDialog implements ActionListener {
 			ventanaPrincipal.getLista().setTramite(tramite);
 			//modificar base de datos
 			ventanaPrincipal.getLista().modificarTramite();
+                        //falta recargar Archivo despues de modificar
 			JOptionPane.showMessageDialog(this, "Trámite modificado con éxito"
 					+ "\n\nTrámite: " + tramite.getNombreTramite() 
 					+ "\nDepartamento o área: " + tramite.getDepartamento() 

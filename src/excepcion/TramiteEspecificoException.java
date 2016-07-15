@@ -13,7 +13,7 @@ public class TramiteEspecificoException extends Exception {
 	
 	public TramiteEspecificoException(String msg) {
 		super(msg);
-		setTitulo("Error en trï¿½mite");
+		setTitulo("Error en trámite");
 	}
 	
 	public TramiteEspecificoException(String[] msg) {

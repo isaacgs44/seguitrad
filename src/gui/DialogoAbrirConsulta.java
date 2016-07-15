@@ -18,7 +18,7 @@ import dominio.Consulta;
 
 public class DialogoAbrirConsulta extends JDialog implements ActionListener {
 	private static final long serialVersionUID = 4065086045034063576L;
-
+ 
 	private JList<Consulta> consultas;
 	private DefaultListModel<Consulta> modeloConsultas;
 	private JScrollPane scrollConsultas;

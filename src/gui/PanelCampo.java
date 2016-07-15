@@ -6,6 +6,8 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.Date;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -19,7 +21,6 @@ import com.toedter.calendar.JDateChooser;
 
 import lib.JIntegerTextField;
 import dominio.Campo;
-import java.util.Date;
 import java.util.StringTokenizer;
 
 /**
@@ -45,7 +46,6 @@ import java.util.StringTokenizer;
 public class PanelCampo extends JPanel {
 
     private static final long serialVersionUID = -3353935489561706446L;
-
     /**
      * Guarda los componentes de un trámite específico dependiendo del tipo de
      * campo que pertenece
@@ -168,15 +168,12 @@ public class PanelCampo extends JPanel {
                 case FECHA:
                     nuevaFecha = new JDateChooser();
                     nuevaFecha.setPreferredSize(new Dimension(200, 30));
-
                     if (valores == null) {
                         if (c.getValorDefecto().equals("Fecha actual")) {
-                            nuevaFecha.setDate(new java.util.Date());
+                            nuevaFecha.setDate(new Date());
                         }
                     } else {
-                        String fecha = valores.get(index)[0];
-                        nuevaFecha.setDate(obtenerFecha(fecha));
-                        System.out.println("FechaNueva: " + nuevaFecha.getDate());
+                        nuevaFecha.setDate(obtenerFecha(valores.get(index)[0]));
                     }
                     componentes.add(nuevaFecha);
                     panelContenedor.add(nuevaFecha);
@@ -192,7 +189,7 @@ public class PanelCampo extends JPanel {
                     if (valores == null) {
                         nuevoComboBox.setSelectedItem(valoresCombo[0]);
                     } else {
-                       
+
                         for (int i = 0; i < valoresCombo.length; i++) {
                             if (valoresCombo[i].equals(valores.get(index)[0])) {
                                 nuevoComboBox.setSelectedItem(valoresCombo[i]);
@@ -216,17 +213,17 @@ public class PanelCampo extends JPanel {
                     }
                     if (valores != null) {
                         //------------------------------------------
-                        
+
 //                        StringTokenizer tokens = new StringTokenizer(valores.get(index)[0], "/");
 //                        opciones = new String[tokens.countTokens()];
 //            		while (tokens.hasMoreTokens()) {
 //                        	opciones[posicion] = tokens.nextToken().trim();
 //                		posicion++;
 //                        }
-                        
+
                         char[] arreglo = valores.get(index)[0].toCharArray();
                         int cont = 0;
-                        ArrayList<Integer> separacion = new ArrayList<>(); 
+                        ArrayList<Integer> separacion = new ArrayList<>();
                         for (int j = 0; j < arreglo.length; j++) {
                             if (arreglo[j] == '/') {
                                 separacion.add(j);
@@ -234,21 +231,21 @@ public class PanelCampo extends JPanel {
                             }
                         }
                         System.out.println("contador: " + cont);
-                        String[] valoresIndices = new String[cont+1];
+                        String[] valoresIndices = new String[cont + 1];
                         int inicio = 0;
                         int fin = 0;
-                        
+
                         System.out.println("Valor: " + valores.get(index)[0]);
                         System.out.println("Tamaño separacion: " + separacion.size());
                         for (int z = 0; z < separacion.size(); z++) {
                             System.out.println("indices: " + separacion.get(z));
-                            fin = separacion.get(z)-1;
+                            fin = separacion.get(z) - 1;
                             valoresIndices[z] = valores.get(index)[0].substring(inicio, fin);
-                            inicio = separacion.get(z)+2;
+                            inicio = separacion.get(z) + 2;
                             if (z == separacion.size() - 1) {
                                 inicio = separacion.get(z) + 2;
                                 fin = valores.get(index)[0].length();
-                                valoresIndices[++z] =valores.get(index)[0].substring(inicio, fin);
+                                valoresIndices[++z] = valores.get(index)[0].substring(inicio, fin);
                             }
                         }
 
@@ -256,7 +253,7 @@ public class PanelCampo extends JPanel {
                         for (int j = 0; j < valoresIndices.length; j++) {
                             System.out.println(j + ".- INDICE: " + valoresIndices[j]);
                         }
-                        
+
                         //-----------------------------
                         String seleccion[] = valoresIndices;
                         int[] indices = new int[seleccion.length];
@@ -315,8 +312,9 @@ public class PanelCampo extends JPanel {
         nuevoLabel.setPreferredSize(new Dimension(10, 30));
         panelContenedor.add(nuevoLabel);
     }
-    
-    private Date obtenerFecha(String fecha) {
+
+    public static Date obtenerFecha(String fecha) {
+        try{
         System.out.println("Fecha: " + fecha);
         StringTokenizer tokens = new StringTokenizer(fecha, "/");
         String[] datos = new String[tokens.countTokens()];
@@ -324,7 +322,11 @@ public class PanelCampo extends JPanel {
         while (tokens.hasMoreTokens()) {
             datos[i] = tokens.nextToken().trim();
             i++;
-        }     
-        return new Date(Integer.parseInt(datos[2])-1900, Integer.parseInt(datos[1])-1, Integer.parseInt(datos[0]));
+        }
+        return new Date(Integer.parseInt(datos[2]) - 1900, Integer.parseInt(datos[1]) - 1, Integer.parseInt(datos[0]));
+    }
+        catch(NullPointerException e){
+            return null;
+        }
     }
 }

@@ -6,7 +6,7 @@ import java.sql.*;
 import excepcion.BaseDatosException;
 
 public class BaseDatos {
-
+ 
     private static final int numTablas = 7; //FIXME
     private Connection conexion;
     private Statement instruccion;

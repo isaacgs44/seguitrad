@@ -1,5 +1,7 @@
 package gui;
 
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -7,6 +9,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
+import dominio.Tramite;
+import dominio.TramiteEspecifico;
 
 public class DialogoDetalles extends JDialog implements ActionListener {
 
@@ -17,53 +24,57 @@ public class DialogoDetalles extends JDialog implements ActionListener {
     private JLabel etiquetaVaciaFechaInicio;
     private JLabel etiquetaVaciaFechaFin;
     private JLabel etiquetaVaciaEstado;
-    private JLabel etiquetaVaciaCamposExtras;
+    private JPanel camposExtras;
+    private TramiteEspecifico tramiteEspecifico;
+    private Tramite tramite;
 
-    public DialogoDetalles(VentanaPrincipal ventanaPrincipal) {
+    public DialogoDetalles(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
         super(ventanaPrincipal, "Detalles del trámite", true);
         setLayout(null);
+        this.tramiteEspecifico = tramiteEspecifico;
+        tramite = ventanaPrincipal.getLista().getTramite();
 
         JLabel etiquetaNombreSolicitante = new JLabel("Nombre del solicitante: ");
         etiquetaNombreSolicitante.setBounds(20, 30, 150, 50);
         add(etiquetaNombreSolicitante);
         etiquetaVaciaNombre = new JLabel("*");
-        etiquetaVaciaNombre.setBounds(170, 30, 150, 50);
+        etiquetaVaciaNombre.setBounds(210, 30, 150, 50);
         add(etiquetaVaciaNombre);
 
         JLabel etiquetaTitulo = new JLabel("Título: ");
         etiquetaTitulo.setBounds(20, 60, 150, 50);
         add(etiquetaTitulo);
         etiquetaVaciaTitulo = new JLabel("*");
-        etiquetaVaciaTitulo.setBounds(170, 60, 150, 50);
+        etiquetaVaciaTitulo.setBounds(210, 60, 150, 50);
         add(etiquetaVaciaTitulo);
 
         JLabel etiquetaFechaInicio = new JLabel("Fecha de inicio: ");
         etiquetaFechaInicio.setBounds(20, 90, 150, 50);
         add(etiquetaFechaInicio);
         etiquetaVaciaFechaInicio = new JLabel("*");
-        etiquetaVaciaFechaInicio.setBounds(170, 90, 150, 50);
+        etiquetaVaciaFechaInicio.setBounds(210, 90, 150, 50);
         add(etiquetaVaciaFechaInicio);
 
         JLabel etiquetaFechaFin = new JLabel("Fecha de fin: ");
         etiquetaFechaFin.setBounds(20, 120, 150, 50);
         add(etiquetaFechaFin);
         etiquetaVaciaFechaFin = new JLabel("*");
-        etiquetaVaciaFechaFin.setBounds(170, 120, 150, 50);
+        etiquetaVaciaFechaFin.setBounds(210, 120, 150, 50);
         add(etiquetaVaciaFechaFin);
 
         JLabel etiquetaEstado = new JLabel("Estado: ");
         etiquetaEstado.setBounds(20, 150, 150, 50);
         add(etiquetaEstado);
         etiquetaVaciaEstado = new JLabel("*");
-        etiquetaVaciaEstado.setBounds(170, 150, 150, 50);
+        etiquetaVaciaEstado.setBounds(210, 150, 150, 50);
         add(etiquetaVaciaEstado);
 
-        JLabel etiquetaCamposExtras = new JLabel("Campos Extras: ");
-        etiquetaCamposExtras.setBounds(20, 180, 150, 50);
-        add(etiquetaCamposExtras);
-        etiquetaVaciaCamposExtras = new JLabel("*");
-        etiquetaVaciaCamposExtras.setBounds(170, 180, 150, 50);
-        add(etiquetaVaciaCamposExtras);
+        camposExtras = new JPanel();
+        JScrollPane panel = new JScrollPane(camposExtras);
+        panel.setBounds(20, 190, 400, 150);
+        panel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        add(panel);
 
         cerrarBoton = new JButton("Cerrar");
         cerrarBoton.addActionListener(this);
@@ -80,7 +91,21 @@ public class DialogoDetalles extends JDialog implements ActionListener {
     }
 
     private void inicializar() {
-        // TODO Auto-generated method stub
+        etiquetaVaciaNombre.setText(tramiteEspecifico.getValores().get(0)[0]);
+        etiquetaVaciaTitulo.setText(tramiteEspecifico.getValores().get(1)[0]);
+        etiquetaVaciaFechaInicio.setText(tramiteEspecifico.getValores().get(2)[0]);
+        etiquetaVaciaFechaFin.setText(tramiteEspecifico.getValores().get(3)[0]);
+        etiquetaVaciaEstado.setText(tramiteEspecifico.getValores().get(4)[0]);
+
+        int numeroCampos = tramite.getCampos().size()-5;
+        camposExtras.setLayout(new GridLayout(numeroCampos, 2, 1, 5));
+        for (int i = 5; i < tramite.getCampos().size(); i++) {
+            JLabel etiqueta = new JLabel(tramite.getCampos().get(i).getNombreCampo() + ":");
+            etiqueta.setPreferredSize(new Dimension(150, 30));
+            camposExtras.add(etiqueta);
+            JLabel valor = new JLabel(tramiteEspecifico.getValores().get(i)[0]);
+            camposExtras.add(valor);
+        }
     }
 
     @Override

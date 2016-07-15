@@ -8,13 +8,12 @@ import dominio.PasoEspecifico;
 import dominio.TramiteEspecifico;
 import excepcion.BaseDatosException;
 import excepcion.TramiteException;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class VentanaPrincipal extends JFrame implements ActionListener {
 
@@ -182,7 +181,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
                 try {
                     salir();
                 } catch (BaseDatosException ex) {
-                    Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
             }
         });
@@ -191,7 +190,6 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(nuevoTramiteMenu)) {
             new DialogoNuevoTramite(this);
@@ -200,7 +198,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
             try {
                 abrirTramite();
             } catch (BaseDatosException ex) {
-                Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         } else if (e.getSource().equals(guardarTramiteMenu)) {
             if (lista.getTramite() == null) {
@@ -208,9 +206,8 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
             } else {
                 try {
                     lista.guardarArchivo();
-                    lista.setHayCambios(false);
                 } catch (BaseDatosException ex) {
-                    Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
                 establecerTitulo();
             }
@@ -241,14 +238,14 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
                 try {
                     cerrarTramite();
                 } catch (BaseDatosException ex) {
-                    Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
             }
         } else if (e.getSource().equals(salirMenu)) {
             try {
                 salir();
             } catch (BaseDatosException ex) {
-                Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         } else if (e.getSource().equals(seguimientoMenu)) {
             if (lista.getTramite() == null || lista.getListaTramitesEsp().isEmpty()) {
@@ -267,6 +264,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto o \nno existen trámites específicos almacenados", "Modificar registro", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoBuscarModificar(this);
+               
             }
         } else if (e.getSource().equals(eliminarRegistroMenu)) {
             if (lista.getTramite() == null || lista.getListaTramitesEsp().isEmpty()) {
@@ -308,14 +306,6 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     * Método para cargar todos los datos del trámite seleccionado
-     * 
-     * @see ListaTramites#abrirArchivo() 
-     * @see #cerrarTramite()
-     * @see #establecerTitulo() 
-     * 
-     * @throws BaseDatosException
-     * 
      * 
      */
     private void abrirTramite() throws BaseDatosException {
@@ -324,50 +314,27 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
         }
         if (lista.getTramite() == null) {
             try {
-                lista.abrirArchivo();
-
-                ArrayList<Campo> campos = lista.getTramite().getCampos();
-                System.out.println("*******Campos******");
-                for (Campo c : campos) {
-                    System.out.println(c.toString());
-                }
-
+                lista.abrirArchivo();                             
                 System.out.println("tramite: " + lista.getTramite().getNombreTramite());
                 System.out.println("Archivo: " + lista.getTramite().getNombreArchivo());
                 ArrayList<TramiteEspecifico> listaTramitesEsp = lista.getListaTramitesEsp();
-
-                for (TramiteEspecifico t : listaTramitesEsp) {
+                
+                for(TramiteEspecifico t : listaTramitesEsp){
                     System.out.println("idTramite" + t.getIdTramite());
-                    ArrayList<String[]> valores = t.getValores();
                     ArrayList<PasoEspecifico> pasosEspecificos = t.getPasosEspecificos();
-
-                    System.out.println("--------VALORES--------");
-                    for (int i = 0; i < valores.size(); i++) {
-                        String[] v = valores.get(i);
-                        for (int j = 0; j < v.length; j++) {
-                            System.out.println("valor: " + v[j]);
-                        }
-                    }
                     System.out.println("----------PASOS----------");
-                    for (int z = 0; z < pasosEspecificos.size(); z++) {
+                    System.out.println("Tamaño lista pasos "+pasosEspecificos.size());
+                    for (int z = 0;  z < pasosEspecificos.size(); z++) {
                         PasoEspecifico p = pasosEspecificos.get(z);
                         System.out.println("Nombre: " + p.getNombrePaso());
                         System.out.println("Documento: " + p.getDocumento());
                         System.out.println("Fecha_Límite: " + p.getFechaLimite());
                         System.out.println("Realización: " + p.getFechaRealizacion());
-                        System.out.println("Repeticion: " + p.getRepeticion());
+                        System.out.println("Repeticion: "+ p.getRepeticion());
                     }
+                    
                 }
-
-                ArrayList<TramiteEspecifico> listaTramitesE = lista.getListaTramitesEsp();
-                for (TramiteEspecifico t : listaTramitesE) {
-                    System.out.println("ID: " + t.getIdTramite());
-                    for (int j = 0; j < t.getCampos().size(); j++) {
-                        System.out.println("CAMPO: \n " + t.getCampos().get(j));
-                        System.out.println("VALOR: " + t.getValores().get(j)[0]);
-                    }
-                }
-
+                
                 establecerTitulo();
             } catch (TramiteException e1) {
                 JOptionPane.showMessageDialog(this, e1.getMessage(), e1.getTitulo(), JOptionPane.ERROR_MESSAGE);
@@ -380,7 +347,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     *
+     * 
      */
     private void cerrarTramite() throws BaseDatosException {
         if (getTitle().startsWith("*")) {
@@ -399,7 +366,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     *
+     * 
      */
     private void salir() throws BaseDatosException {
         if (getTitle().startsWith("*")) {
@@ -419,7 +386,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     *
+     * 
      */
     private void mostrarInformacionSistema() {
         JOptionPane.showMessageDialog(this, "Software para control de seguimiento de trámites administrativos"
@@ -434,7 +401,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     *
+     * 
      */
     private void verManual() {
         File path = new File("manual.pdf");

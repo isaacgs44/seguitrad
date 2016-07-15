@@ -10,7 +10,10 @@ import java.util.Collections;
 import basedatos.BaseDatos;
 import excepcion.BaseDatosException;
 import excepcion.TramiteException;
+import gui.PanelCampo;
 import java.sql.ResultSet;
+import java.util.Date;
+import java.util.StringTokenizer;
 
 public class ListaTramites {
 
@@ -19,6 +22,7 @@ public class ListaTramites {
     private ArrayList<Consulta> listaConsultas;
     private boolean hayCambios;
     private BaseDatos bd;
+    private PanelCampo panelCampo;
     FileDialog fd = new FileDialog(new Frame(), "Seleccionar trámite", FileDialog.LOAD);
 
     /**
@@ -149,10 +153,10 @@ public class ListaTramites {
     public void guardarArchivo() throws BaseDatosException {
         // FALTA - borrar toda la BD antes de insertar
         bd = this.getBd();
-        
+
         // insertamos consutas...
         for (Consulta consulta : getListaConsultas()) {
-            
+
             consulta.insertarConsulta(bd);
         }
     }
@@ -180,7 +184,6 @@ public class ListaTramites {
      * @throws SQLException
      * @autor cresencio -isaac
      */
-    
     public void abrirArchivo() throws BaseDatosException, TramiteException, SQLException {
         fd.setDirectory(System.getProperty("user.dir") + File.separator + "tramites");
         fd.setFile("*.trad");
@@ -196,6 +199,7 @@ public class ListaTramites {
             // Recuperamos trámites específicos
             ArrayList<Campo> campos = tramite.getCampos();
             ArrayList<Paso> pasos = tramite.getPasos();
+            ArrayList<PasoEspecifico> pasoEspecificos;
             int registrosMeta_Espec = bd.numRegistrosMeta_espec();
             String consulta = "SELECT * FROM tramites_especificos";
 
@@ -256,22 +260,33 @@ public class ListaTramites {
                     }
                 }
 
-                for (Paso p : pasos) {
+                /*TRABAJANDO EN RECUPERACION DE PASOS ESPECIFICOS*/
+                String consultaPasosEsp = "select * from pasos_especificos inner join meta_paso"
+                        + " where pasos_especificos.num_paso= meta_paso.num_paso"
+                        + " and idRegistro_tramiteEsp = " + tramiteEspecifico.getIdTramite();
+                ResultSet resultSet = bd.realizarConsulta(consultaPasosEsp);
+                while (resultSet.next()) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                    pasoEspecifico.setNombrePaso(p.getNombrePaso());
-                    // Falta. crear la repetición de pasos
-                    pasoEspecifico.setRepeticion(p.getRepeticion());
-                    pasoEspecifico.setRealizado(false);
-                    pasoEspecifico.setFechaRealizacion(null);
-                    pasoEspecifico.setDocumento("");
-                    /*if (p.isObligatorio() && p.isConFechaLimite()) {
-                    
-                     fecha = fechas.get(index);
-                     pasoEspecifico.setFechaLimite(fecha.getDate());
-                     index++;
-                     } else {
-                     pasoEspecifico.setFechaLimite(null);
-                     }*/
+                    pasoEspecifico.setNombrePaso(resultSet.getString("nombre_paso"));
+                    boolean realizado= Boolean.parseBoolean(resultSet.getString("realizado"));
+                    pasoEspecifico.setRealizado(realizado);
+                    try {
+                        //Date d = new Date(resultSet.getString("fecha_realizacion"));
+                        pasoEspecifico.setFechaRealizacion(PanelCampo.obtenerFecha(resultSet.getString("fecha_realizacion")));
+                        System.out.println(PanelCampo.obtenerFecha(resultSet.getString("fecha_realizacion")));
+                        //pasoEspecifico.setFechaRealizacion(d);
+                    } catch (IllegalArgumentException e) {
+                        pasoEspecifico.setFechaRealizacion(null);
+                    }
+                    pasoEspecifico.setDocumento(resultSet.getString("documento"));
+                    boolean obligatorio = Boolean.parseBoolean(resultSet.getString("obligatorio"));
+                    boolean con_fecha_limite = Boolean.parseBoolean(resultSet.getString("con_fecha_limite"));
+                    if (obligatorio && con_fecha_limite) {
+                            //Date d = new Date(resultSet.getString("fecha_limite"));
+                            pasoEspecifico.setFechaLimite(PanelCampo.obtenerFecha(resultSet.getString("fecha_limite")));
+                    } else {
+                        pasoEspecifico.setFechaLimite(null);
+                    }
 
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
@@ -299,6 +314,7 @@ public class ListaTramites {
                                 separador = rs3.getString(3).indexOf("/");
                                 valores[0] = rs3.getString(3).substring(0, separador - 1);
                                 valores[1] = rs3.getString(3).substring(separador + 2);
+
                                 break;
 
                             default:
@@ -326,102 +342,6 @@ public class ListaTramites {
             // no se seleccionó nada o se canceló
             setBd(null);
         }
-    }
-
-    public void recargarArchivo() throws BaseDatosException, SQLException, TramiteException {
-        // abrir bd
-        bd = new BaseDatos(fd.getDirectory() + fd.getFile(), false);
-        inicializar();
-        // recuperar tramite
-        tramite = new Tramite();
-        tramite.recuperarTramite(bd, fd.getFile());
-
-        // Recuperamos trámites específicos
-        ArrayList<Campo> campos = tramite.getCampos();
-        ArrayList<Paso> pasos = tramite.getPasos();
-        int registrosMeta_Espec = bd.numRegistrosMeta_espec();
-        String consulta = "SELECT * FROM tramites_especificos";
-
-        ResultSet rs = bd.realizarConsulta(consulta);
-        this.listaTramites.clear();
-        while (rs.next()) {
-            ArrayList<String[]> valores = new ArrayList<>();
-            ArrayList<String[]> valoresDefecto = new ArrayList<>();
-            TramiteEspecifico tramiteEspecifico = new TramiteEspecifico();
-
-            tramiteEspecifico.setIdTramite(Integer.parseInt(rs.getString(1)));
-            valores.add(0, new String[1]);
-            valores.get(0)[0] = rs.getString(2);
-            valores.add(1, new String[1]);
-            valores.get(1)[0] = rs.getString(3);
-            valores.add(2, new String[1]);
-            valores.get(2)[0] = rs.getString(4);
-            valores.add(3, new String[1]);
-            valores.get(3)[0] = rs.getString(5);
-            valores.add(4, new String[1]);
-            valores.get(4)[0] = rs.getString(6);
-
-            //Trabajando en cargar datos por defecto
-            for (int j = 0; j < 5; j++) {
-                tramiteEspecifico.agregarCampo(campos.get(j), valores.get(j));
-            }
-
-            if (comprobarCamposAdicionales(tramiteEspecifico.getIdTramite())) {
-                String consulta2 = "select   Valor, idRegistro,valor_defecto from meta_espec inner join "
-                        + "tramites_especificos inner join tramites_especificos_campos where idCampo_numCampoMeta_espec=num_campo "
-                        + "and idCampo_IdRegistro_tramiteEspec= idRegistro ";
-                ResultSet rs1 = bd.realizarConsulta(consulta2);
-                int k = 5;
-                while (rs1.next()) {
-                    ArrayList<String[]> valoresCamposBD = new ArrayList<>();
-                    if (tramiteEspecifico.getIdTramite() == rs1.getInt(2)) {
-                        valoresCamposBD.add(0, new String[1]);
-                        valoresCamposBD.get(0)[0] = rs1.getString(1);
-                        tramiteEspecifico.agregarCampo(campos.get(k), valoresCamposBD.get(0));
-                        k++;
-                    }
-                }
-                if (k < registrosMeta_Espec) {
-                    for (int i = k; i < campos.size(); i++) {
-                        valoresDefecto.add(0, new String[1]);
-                        valoresDefecto.get(0)[0] = campos.get(i).getValorDefecto();
-                        tramiteEspecifico.agregarCampo(campos.get(i), valoresDefecto.get(0));
-                    }
-                }
-            }
-            if (registrosMeta_Espec != 5) {
-                if (comprobarCamposAdicionales(tramiteEspecifico.getIdTramite()) == false) {
-                    for (int i = 5; i < campos.size(); i++) {
-                        valoresDefecto.add(0, new String[1]);
-                        valoresDefecto.get(0)[0] = campos.get(i).getValorDefecto();
-                        tramiteEspecifico.agregarCampo(campos.get(i), valoresDefecto.get(0));
-                    }
-                }
-            }
-
-            for (Paso p : pasos) {
-                PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                pasoEspecifico.setNombrePaso(p.getNombrePaso());
-                // Falta. crear la repetición de pasos
-                pasoEspecifico.setRepeticion(p.getRepeticion());
-                pasoEspecifico.setRealizado(false);
-                pasoEspecifico.setFechaRealizacion(null);
-                pasoEspecifico.setDocumento("");
-                /*if (p.isObligatorio() && p.isConFechaLimite()) {
-                    
-                 fecha = fechas.get(index);
-                 pasoEspecifico.setFechaLimite(fecha.getDate());
-                 index++;
-                 } else {
-                 pasoEspecifico.setFechaLimite(null);
-                 }*/
-
-                tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
-            }
-            agregarTramiteEspecifico(tramiteEspecifico);
-
-        }
-        bd.cerrarConexion();
     }
 
     //Comprueba la existencia de registros en la tabla tramites_especificos_campos para un tramite especifico y
@@ -459,6 +379,7 @@ public class ListaTramites {
             }
         }
     }
+
 
     public void cerrarArchivo() {
         inicializar();
