@@ -6,7 +6,7 @@ import java.sql.*;
 import excepcion.BaseDatosException;
 
 public class BaseDatos {
- 
+    
     private static final int numTablas = 7; //FIXME
     private Connection conexion;
     private Statement instruccion;
@@ -18,6 +18,39 @@ public class BaseDatos {
     private String directorio;
     // que tranza
     public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
         String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));
         File dir = null;
         File archivo = null;
