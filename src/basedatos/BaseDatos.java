@@ -6,7 +6,7 @@ import java.sql.*;
 import excepcion.BaseDatosException;
 
 public class BaseDatos {
- 
+    
     private static final int numTablas = 7; //FIXME
     private Connection conexion;
     private Statement instruccion;
@@ -16,7 +16,6 @@ public class BaseDatos {
     private String pass;
     private String ruta;
     private String directorio;
-
     public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {
         String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));
         File dir = null;
@@ -261,7 +260,11 @@ public class BaseDatos {
             cerrarConexion();
         }
     }
-
+     
+    public String getDirectorio() {
+        return directorio + File.separator;
+    }
+     
     public String[] obtenerNumCampos() throws BaseDatosException {
         try {
             String[] numCampos = null;
@@ -380,7 +383,5 @@ public class BaseDatos {
         return var;
     }
 
-    public String getDirectorio() {
-        return directorio + File.separator;
-    }
+   
 }
