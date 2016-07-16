@@ -1,0 +1,777 @@
+[1mdiff --git a/src/basedatos/BaseDatos.java b/src/basedatos/BaseDatos.java[m
+[1mindex 0019e12..40865e3 100644[m
+[1m--- a/src/basedatos/BaseDatos.java[m
+[1m+++ b/src/basedatos/BaseDatos.java[m
+[36m@@ -1,386 +1,386 @@[m
+[31m-package basedatos;[m
+[31m-[m
+[31m-import java.io.File;[m
+[31m-import java.sql.*;[m
+[31m-[m
+[31m-import excepcion.BaseDatosException;[m
+[31m-[m
+[31m-public class BaseDatos {[m
+[31m- [m
+[31m-    private static final int numTablas = 7; //FIXME[m
+[31m-    private Connection conexion;[m
+[31m-    private Statement instruccion;[m
+[31m-    private String controlador;[m
+[31m-    private String url;[m
+[31m-    private String user;[m
+[31m-    private String pass;[m
+[31m-    private String ruta;[m
+[31m-    private String directorio;[m
+[31m-[m
+[31m-    public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {[m
+[31m-        String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));[m
+[31m-        File dir = null;[m
+[31m-        File archivo = null;[m
+[31m-        if (!esNueva) {[m
+[31m-            dir = new File(nombreDirectorio);[m
+[31m-            archivo = new File(nombreArchivo);[m
+[31m-            // validar que exista la bd y la carpeta		[m
+[31m-            if (!dir.exists() || !archivo.exists()) {[m
+[31m-                throw new BaseDatosException(BaseDatosException.ERROR_ABRIRBD);[m
+[31m-            }[m
+[31m-            ruta = nombreArchivo;[m
+[31m-            directorio = nombreDirectorio;[m
+[31m-            controlador = "org.sqlite.JDBC";[m
+[31m-            url = "jdbc:sqlite:" + ruta;[m
+[31m-            user = "";[m
+[31m-            pass = "";[m
+[31m-            // validar que sea bd del sistema revisando los nombres de las tablas[m
+[31m-            String[] tablas = obtenerTablas();[m
+[31m-            boolean esValida = true;[m
+[31m-            int contador = 0;[m
+[31m-            for (String tabla : tablas) {[m
+[31m-                switch (tabla) {[m
+[31m-                    case "general":[m
+[31m-                    case "meta_espec":[m
+[31m-                    case "meta_paso":[m
+[31m-                    case "consulta":[m
+[31m-                    case "tramites_especificos":[m
+[31m-                    case "tramites_especificos_campos":[m
+[31m-                    case "pasos_especificos":[m
+[31m-                        contador++;[m
+[31m-                        break;[m
+[31m-                    default:[m
+[31m-                        esValida = false;[m
+[31m-                        break;[m
+[31m-                }[m
+[31m-            }[m
+[31m-            if (!esValida || contador != numTablas) {[m
+[31m-                throw new BaseDatosException(BaseDatosException.ERROR_BDDESCONOCIDA);[m
+[31m-            }[m
+[31m-        } else {[m
+[31m-            dir = new File("tramites" + File.separator + nombreDirectorio);[m
+[31m-            archivo = new File("tramites" + File.separator + nombreArchivo);[m
+[31m-            // validar que no exista la bd y la carpeta		[m
+[31m-            if (dir.exists() || archivo.exists()) {[m
+[31m-                throw new BaseDatosException(BaseDatosException.ERROR_CREARBD);[m
+[31m-            }[m
+[31m-            dir.mkdir();[m
+[31m-            ruta = "tramites" + File.separator + nombreArchivo;[m
+[31m-            directorio = "tramites" + File.separator + nombreDirectorio;[m
+[31m-            controlador = "org.sqlite.JDBC";[m
+[31m-            url = "jdbc:sqlite:" + ruta;[m
+[31m-            user = "";[m
+[31m-            pass = "";[m
+[31m-        }[m
+[31m-        instruccion = null;[m
+[31m-    }[m
+[31m-[m
+[31m-    private void realizarConexion() throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            Class.forName(controlador);[m
+[31m-            conexion = DriverManager.getConnection(url, user, pass);[m
+[31m-        } catch (SQLException excepcionSQL) {[m
+[31m-            throw new BaseDatosException(excepcionSQL.getMessage());[m
+[31m-        } catch (ClassNotFoundException claseNoEncontrada) {[m
+[31m-            throw new BaseDatosException(BaseDatosException.ERROR_CONTROLADOR);[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public void cerrarConexion() throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            if (instruccion != null) {[m
+[31m-                instruccion.close();[m
+[31m-            }[m
+[31m-            if (conexion != null) {[m
+[31m-                conexion.close();[m
+[31m-            }[m
+[31m-        } catch (SQLException excepcionSQL) {[m
+[31m-            throw new BaseDatosException(excepcionSQL.getMessage());[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public ResultSet realizarConsulta(String consulta) throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            realizarConexion();[m
+[31m-            instruccion = null;[m
+[31m-            instruccion = conexion.createStatement();[m
+[31m-            ResultSet resultados = instruccion.executeQuery(consulta);[m
+[31m-            return resultados;[m
+[31m-        } catch (SQLException excepcionSQL) {[m
+[31m-            throw new BaseDatosException(excepcionSQL.getMessage());[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public boolean realizarAccion(String accion) throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            realizarConexion();[m
+[31m-            instruccion = null;[m
+[31m-            instruccion = conexion.createStatement();[m
+[31m-            int dato = instruccion.executeUpdate(accion);[m
+[31m-            if (dato >= 1) {[m
+[31m-                return true;[m
+[31m-            } else {[m
+[31m-                return false;[m
+[31m-            }[m
+[31m-        } catch (SQLException excepcionSQL) {[m
+[31m-            throw new BaseDatosException(excepcionSQL.getMessage());[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    private String[] obtenerTablas() throws BaseDatosException {[m
+[31m-        String[] nombres = null;[m
+[31m-        // bloque para obtener los nombres de las tablas que tiene la BD abierta[m
+[31m-        try {[m
+[31m-            realizarConexion();[m
+[31m-            String[] tipotabla = {"TABLE"};[m
+[31m-            // de la base de datos se obtiene todo lo referente a sus tablas[m
+[31m-            ResultSet nomTablas = conexion.getMetaData().getTables(null, null, null, tipotabla);[m
+[31m-            // determinar cuantas tablas son[m
+[31m-            int contador = 0;[m
+[31m-            while (nomTablas.next()) {[m
+[31m-                contador++;[m
+[31m-            }[m
+[31m-            nombres = new String[contador];[m
+[31m-            nomTablas = conexion.getMetaData().getTables(null, null, null, tipotabla);[m
+[31m-            // ciclo para leer los nombres de cada tabla, que se encuentra en el campo 3 de cada registro[m
+[31m-            nomTablas.next();[m
+[31m-            for (int i = 1; i <= contador; i++) {[m
+[31m-                nombres[i - 1] = nomTablas.getString(3);[m
+[31m-                nomTablas.next();[m
+[31m-            }[m
+[31m-        } catch (SQLException e) {[m
+[31m-            throw new BaseDatosException(e.getMessage());[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-        // regresa arreglo con los nombres de las tablas[m
+[31m-        return nombres;[m
+[31m-    }[m
+[31m-[m
+[31m-    public void crearTablas() throws BaseDatosException {[m
+[31m-        String instruccion;[m
+[31m-        // crear tabla general[m
+[31m-        instruccion = "CREATE TABLE general ("[m
+[31m-                + "nombre_tramite VARCHAR(100) UNIQUE NOT NULL PRIMARY KEY, "[m
+[31m-                + "departamento_area VARCHAR(100) NOT NULL, "[m
+[31m-                + "descripcion VARCHAR(300) NULL, "[m
+[31m-                + "nombre_archivo VARCHAR(50) UNIQUE NOT NULL, "[m
+[31m-                + "dias_alerta NUMERIC NOT NULL)";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-        // crear tabla meta_espec[m
+[31m-        instruccion = "CREATE TABLE meta_espec ("[m
+[31m-                + "nombre_campo VARCHAR(100) UNIQUE NOT NULL PRIMARY KEY, "[m
+[31m-                + "num_campo NUMERIC UNIQUE NOT NULL, "[m
+[31m-                + "obligatorio BOOLEAN NOT NULL, "[m
+[31m-                + "tipo_campo VARCHAR(20) NOT NULL, "[m
+[31m-                + "valor_defecto VARCHAR(200) NULL)";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-        // crear tabla meta_paso[m
+[31m-        instruccion = "CREATE TABLE meta_paso ("[m
+[31m-                + "nombre_paso VARCHAR(100) UNIQUE NOT NULL PRIMARY KEY, "[m
+[31m-                + "num_paso NUMERIC UNIQUE NOT NULL, "[m
+[31m-                + "responsable VARCHAR(50) NOT NULL, "[m
+[31m-                + "con_fecha_limite BOOLEAN NOT NULL, "[m
+[31m-                + "con_plantilla BOOLEAN NOT NULL, "[m
+[31m-                + "plantilla VARCHAR(100) NULL, "[m
+[31m-                + "con_documento BOOLEAN NOT NULL, "[m
+[31m-                + "con_cambio_estado BOOLEAN NOT NULL, "[m
+[31m-                + "estado VARCHAR(50) NULL, "[m
+[31m-                + "secuencia NUMERIC NULL, "[m
+[31m-                + "obligatorio BOOLEAN NOT NULL, "[m
+[31m-                + "con_repeticion BOOLEAN NOT NULL, "[m
+[31m-                + "repeticion NUMERIC NULL)";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-        //Falta[m
+[31m-        // crear tabla tramites especificos y pasos especificos[m
+[31m-        instruccion = "CREATE TABLE tramites_especificos ("[m
+[31m-                + "idRegistro NUMERIC UNIQUE NOT NULL, Nombre_del_solicitante VARCHAR(100) NOT NULL, "[m
+[31m-                + "Título VARCHAR(100) NOT NULL, "[m
+[31m-                + "Fecha_de_inicio VARCHAR(100) NOT NULL,"[m
+[31m-                + "Fecha_de_fin VARCHAR(100) NOT NULL,"[m
+[31m-                + "Estado VARCHAR(100) NOT NULL)";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-[m
+[31m-        //crear tabla tramites especificos_campos[m
+[31m-        instruccion = "CREATE TABLE tramites_especificos_campos ("[m
+[31m-                + "idCampo_IdRegistro_tramiteEspec NUMERIC,"[m
+[31m-                + "idCampo_numCampoMeta_espec NUMERIC,"[m
+[31m-                + "Valor VARCHAR(100) )";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-[m
+[31m-        // crear tabla consultas[m
+[31m-        instruccion = "CREATE TABLE consulta ("[m
+[31m-                + "nombre_consulta VARCHAR(100) NOT NULL, "[m
+[31m-                + "nombre_campo VARCHAR(100) NOT NULL, "[m
+[31m-                + "valores_campo VARCHAR(100) NOT NULL )";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-        [m
+[31m-        [m
+[31m-        instruccion = "CREATE TABLE pasos_especificos ( " +[m
+[31m-        "idPasoEsp NUMERIC UNIQUE NOT NULL," +[m
+[31m-        "idRegistro_tramiteEsp NUMERIC NOT NULL," +[m
+[31m-        "num_paso NUMERIC NOT NULL," +[m
+[31m-        "fecha_limite VARCHAR(100)," +[m
+[31m-        "fecha_realizacion VARCHAR(100), " +[m
+[31m-        "documento VARCHAR(100)," +[m
+[31m-        "realizado BOOLEAN" +[m
+[31m-        ")";[m
+[31m-        realizarAccion(instruccion);[m
+[31m-    }[m
+[31m-[m
+[31m-    public void eliminarRegistroTramite() throws BaseDatosException {[m
+[31m-        realizarAccion("DELETE FROM general");[m
+[31m-        realizarAccion("DELETE FROM meta_espec");[m
+[31m-        realizarAccion("DELETE FROM meta_paso");[m
+[31m-    }[m
+[31m-[m
+[31m-    public String[] obtenerGeneral() throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            String[] registroGeneral = new String[5];[m
+[31m-            ResultSet resultados = realizarConsulta("SELECT nombre_tramite, departamento_area, descripcion, nombre_archivo, dias_alerta FROM general");[m
+[31m-            if (resultados == null) {[m
+[31m-                registroGeneral[0] = "";[m
+[31m-                registroGeneral[1] = "";[m
+[31m-                registroGeneral[2] = "";[m
+[31m-                registroGeneral[3] = "";[m
+[31m-                registroGeneral[4] = "1";[m
+[31m-            } else {[m
+[31m-                resultados.next();[m
+[31m-                registroGeneral[0] = resultados.getString(1);[m
+[31m-                registroGeneral[1] = resultados.getString(2);[m
+[31m-                registroGeneral[2] = resultados.getString(3);[m
+[31m-                registroGeneral[3] = resultados.getString(4);[m
+[31m-                registroGeneral[4] = String.valueOf(resultados.getInt(5));[m
+[31m-            }[m
+[31m-            return registroGeneral;[m
+[31m-        } catch (SQLException e) {[m
+[31m-            throw new BaseDatosException(e.getMessage());[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public String[] obtenerNumCampos() throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            String[] numCampos = null;[m
+[31m-            ResultSet resultados = realizarConsulta("SELECT count(num_campo) FROM meta_espec");[m
+[31m-            resultados.next();[m
+[31m-            numCampos = new String[resultados.getInt(1)];[m
+[31m-            resultados.close();[m
+[31m-            int i = 0;[m
+[31m-            resultados = realizarConsulta("SELECT num_campo FROM meta_espec");[m
+[31m-            while (resultados.next()) {[m
+[31m-                numCampos[i] = String.valueOf(resultados.getInt(1));[m
+[31m-                i++;[m
+[31m-            }[m
+[31m-            return numCampos;[m
+[31m-        } catch (SQLException e) {[m
+[31m-            throw new BaseDatosException(e.getMessage());[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public String[] obtenerCampo(int numCampo) throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            String[] registroCampo = new String[4];[m
+[31m-            ResultSet resultados = realizarConsulta("SELECT nombre_campo, obligatorio, tipo_campo, valor_defecto FROM meta_espec WHERE num_campo = '" + numCampo + "'");[m
+[31m-            if (resultados == null) {[m
+[31m-                registroCampo[0] = "";[m
+[31m-                registroCampo[1] = "false";[m
+[31m-                registroCampo[2] = "null";[m
+[31m-                registroCampo[3] = "";[m
+[31m-            } else {[m
+[31m-                resultados.next();[m
+[31m-                registroCampo[0] = resultados.getString(1);[m
+[31m-                registroCampo[1] = resultados.getString(2);[m
+[31m-                registroCampo[2] = resultados.getString(3);[m
+[31m-                registroCampo[3] = resultados.getString(4);[m
+[31m-            }[m
+[31m-            return registroCampo;[m
+[31m-        } catch (SQLException e) {[m
+[31m-            throw new BaseDatosException(e.getMessage() + " aqui");[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public String[] obtenerNumPasos() throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            String[] numPasos = null;[m
+[31m-            ResultSet resultados = realizarConsulta("SELECT count(num_paso) FROM meta_paso");[m
+[31m-            resultados.next();[m
+[31m-            numPasos = new String[resultados.getInt(1)];[m
+[31m-            resultados.close();[m
+[31m-            int i = 0;[m
+[31m-            resultados = realizarConsulta("SELECT num_paso FROM meta_paso ORDER BY num_paso");[m
+[31m-            while (resultados.next()) {[m
+[31m-                numPasos[i] = String.valueOf(resultados.getInt(1));[m
+[31m-                i++;[m
+[31m-            }[m
+[31m-            return numPasos;[m
+[31m-        } catch (SQLException e) {[m
+[31m-            throw new BaseDatosException(e.getMessage());[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public String[] obtenerPaso(int numPaso) throws BaseDatosException {[m
+[31m-        try {[m
+[31m-            String[] registroPaso = new String[12];[m
+[31m-            ResultSet resultados = realizarConsulta("SELECT nombre_paso, responsable, con_fecha_limite, "[m
+[31m-                    + "con_plantilla, plantilla, con_documento, con_cambio_estado, estado, "[m
+[31m-                    + "secuencia, obligatorio, con_repeticion, repeticion FROM meta_paso WHERE num_paso = '" + numPaso + "'");[m
+[31m-            if (resultados == null) {[m
+[31m-                registroPaso[0] = "";[m
+[31m-                registroPaso[1] = "Propio";[m
+[31m-                registroPaso[2] = "false";[m
+[31m-                registroPaso[3] = "false";[m
+[31m-                registroPaso[4] = "";[m
+[31m-                registroPaso[5] = "true";[m
+[31m-                registroPaso[6] = "false";[m
+[31m-                registroPaso[7] = "";[m
+[31m-                registroPaso[8] = "";[m
+[31m-                registroPaso[9] = "true";[m
+[31m-                registroPaso[10] = "false";[m
+[31m-                registroPaso[11] = "1";[m
+[31m-            } else {[m
+[31m-                resultados.next();[m
+[31m-                registroPaso[0] = resultados.getString(1);[m
+[31m-                registroPaso[1] = resultados.getString(2);[m
+[31m-                registroPaso[2] = resultados.getString(3);[m
+[31m-                registroPaso[3] = resultados.getString(4);[m
+[31m-                registroPaso[4] = resultados.getString(5);[m
+[31m-                registroPaso[5] = resultados.getString(6);[m
+[31m-                registroPaso[6] = resultados.getString(7);[m
+[31m-                registroPaso[7] = resultados.getString(8);[m
+[31m-                registroPaso[8] = String.valueOf(resultados.getInt(9));[m
+[31m-                registroPaso[9] = resultados.getString(10);[m
+[31m-                registroPaso[10] = resultados.getString(11);[m
+[31m-                registroPaso[11] = String.valueOf(resultados.getInt(12));[m
+[31m-            }[m
+[31m-            return registroPaso;[m
+[31m-        } catch (SQLException e) {[m
+[31m-            throw new BaseDatosException(e.getMessage());[m
+[31m-        } finally {[m
+[31m-            cerrarConexion();[m
+[31m-        }[m
+[31m-    }[m
+[31m-[m
+[31m-    public int numRegistrosMeta_espec() throws SQLException, BaseDatosException {[m
+[31m-        ResultSet rs1 = realizarConsulta("select count(*) from meta_espec");[m
+[31m-        int var = 0;[m
+[31m-        while (rs1.next()) {[m
+[31m-            var = rs1.getInt(1);[m
+[31m-        }[m
+[31m-        cerrarConexion();[m
+[31m-        return var;[m
+[31m-    }[m
+[31m-[m
+[31m-    public String getDirectorio() {[m
+[31m-        return directorio + File.separator;[m
+[31m-    }[m
+[31m-}[m
+[32m+[m[32mpackage basedatos;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mimport java.io.File;[m[41m[m
+[32m+[m[32mimport java.sql.*;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mimport excepcion.BaseDatosException;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mpublic class BaseDatos {[m[41m[m
+[32m+[m[41m [m
+[32m+[m[32m    private static final int numTablas = 7; //FIXME[m[41m[m
+[32m+[m[32m    private Connection conexion;[m[41m[m
+[32m+[m[32m    private Statement instruccion;[m[41m[m
+[32m+[m[32m    private String controlador;[m[41m[m
+[32m+[m[32m    private String url;[m[41m[m
+[32m+[m[32m    private String user;[m[41m[m
+[32m+[m[32m    private String pass;[m[41m[m
+[32m+[m[32m    private String ruta;[m[41m[m
+[32m+[m[32m    private String directorio;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {[m[41m[m
+[32m+[m[32m        String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));[m[41m[m
+[32m+[m[32m        File dir = null;[m[41m[m
+[32m+[m[32m        File archivo = null;[m[41m[m
+[32m+[m[32m        if (!esNueva) {[m[41m[m
+[32m+[m[32m            dir = new File(nombreDirectorio);[m[41m[m
+[32m+[m[32m            archivo = new File(nombreArchivo);[m[41m[m
+[32m+[m[32m            // validar que exista la bd y la carpeta[m[41m		[m
+[32m+[m[32m            if (!dir.exists() || !archivo.exists()) {[m[41m[m
+[32m+[m[32m                throw new BaseDatosException(BaseDatosException.ERROR_ABRIRBD);[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            ruta = nombreArchivo;[m[41m[m
+[32m+[m[32m            directorio = nombreDirectorio;[m[41m[m
+[32m+[m[32m            controlador = "org.sqlite.JDBC";[m[41m[m
+[32m+[m[32m            url = "jdbc:sqlite:" + ruta;[m[41m[m
+[32m+[m[32m            user = "";[m[41m[m
+[32m+[m[32m            pass = "";[m[41m[m
+[32m+[m[32m            // validar que sea bd del sistema revisando los nombres de las tablas[m[41m[m
+[32m+[m[32m            String[] tablas = obtenerTablas();[m[41m[m
+[32m+[m[32m            boolean esValida = true;[m[41m[m
+[32m+[m[32m            int contador = 0;[m[41m[m
+[32m+[m[32m            for (String tabla : tablas) {[m[41m[m
+[32m+[m[32m                switch (tabla) {[m[41m[m
+[32m+[m[32m                    case "general":[m[41m[m
+[32m+[m[32m                    case "meta_espec":[m[41m[m
+[32m+[m[32m                    case "meta_paso":[m[41m[m
+[32m+[m[32m                    case "consulta":[m[41m[m
+[32m+[m[32m                    case "tramites_especificos":[m[41m[m
+[32m+[m[32m                    case "tramites_especificos_campos":[m[41m[m
+[32m+[m[32m                    case "pasos_especificos":[m[41m[m
+[32m+[m[32m                        contador++;[m[41m[m
+[32m+[m[32m                        break;[m[41m[m
+[32m+[m[32m                    default:[m[41m[m
+[32m+[m[32m                        esValida = false;[m[41m[m
+[32m+[m[32m                        break;[m[41m[m
+[32m+[m[32m                }[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            if (!esValida || contador != numTablas) {[m[41m[m
+[32m+[m[32m                throw new BaseDatosException(BaseDatosException.ERROR_BDDESCONOCIDA);[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m        } else {[m[41m[m
+[32m+[m[32m            dir = new File("tramites" + File.separator + nombreDirectorio);[m[41m[m
+[32m+[m[32m            archivo = new File("tramites" + File.separator + nombreArchivo);[m[41m[m
+[32m+[m[32m            // validar que no exista la bd y la carpeta[m[41m		[m
+[32m+[m[32m            if (dir.exists() || archivo.exists()) {[m[41m[m
+[32m+[m[32m                throw new BaseDatosException(BaseDatosException.ERROR_CREARBD);[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            dir.mkdir();[m[41m[m
+[32m+[m[32m            ruta = "tramites" + File.separator + nombreArchivo;[m[41m[m
+[32m+[m[32m            directorio = "tramites" + File.separator + nombreDirectorio;[m[41m[m
+[32m+[m[32m            controlador = "org.sqlite.JDBC";[m[41m[m
+[32m+[m[32m            url = "jdbc:sqlite:" + ruta;[m[41m[m
+[32m+[m[32m            user = "";[m[41m[m
+[32m+[m[32m            pass = "";[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m        instruccion = null;[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    private void realizarConexion() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            Class.forName(controlador);[m[41m[m
+[32m+[m[32m            conexion = DriverManager.getConnection(url, user, pass);[m[41m[m
+[32m+[m[32m        } catch (SQLException excepcionSQL) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(excepcionSQL.getMessage());[m[41m[m
+[32m+[m[32m        } catch (ClassNotFoundException claseNoEncontrada) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(BaseDatosException.ERROR_CONTROLADOR);[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public void cerrarConexion() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            if (instruccion != null) {[m[41m[m
+[32m+[m[32m                instruccion.close();[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            if (conexion != null) {[m[41m[m
+[32m+[m[32m                conexion.close();[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m        } catch (SQLException excepcionSQL) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(excepcionSQL.getMessage());[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public ResultSet realizarConsulta(String consulta) throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            realizarConexion();[m[41m[m
+[32m+[m[32m            instruccion = null;[m[41m[m
+[32m+[m[32m            instruccion = conexion.createStatement();[m[41m[m
+[32m+[m[32m            ResultSet resultados = instruccion.executeQuery(consulta);[m[41m[m
+[32m+[m[32m            return resultados;[m[41m[m
+[32m+[m[32m        } catch (SQLException excepcionSQL) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(excepcionSQL.getMessage());[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public boolean realizarAccion(String accion) throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            realizarConexion();[m[41m[m
+[32m+[m[32m            instruccion = null;[m[41m[m
+[32m+[m[32m            instruccion = conexion.createStatement();[m[41m[m
+[32m+[m[32m            int dato = instruccion.executeUpdate(accion);[m[41m[m
+[32m+[m[32m            if (dato >= 1) {[m[41m[m
+[32m+[m[32m                return true;[m[41m[m
+[32m+[m[32m            } else {[m[41m[m
+[32m+[m[32m                return false;[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m        } catch (SQLException excepcionSQL) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(excepcionSQL.getMessage());[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    private String[] obtenerTablas() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        String[] nombres = null;[m[41m[m
+[32m+[m[32m        // bloque para obtener los nombres de las tablas que tiene la BD abierta[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            realizarConexion();[m[41m[m
+[32m+[m[32m            String[] tipotabla = {"TABLE"};[m[41m[m
+[32m+[m[32m            // de la base de datos se obtiene todo lo referente a sus tablas[m[41m[m
+[32m+[m[32m            ResultSet nomTablas = conexion.getMetaData().getTables(null, null, null, tipotabla);[m[41m[m
+[32m+[m[32m            // determinar cuantas tablas son[m[41m[m
+[32m+[m[32m            int contador = 0;[m[41m[m
+[32m+[m[32m            while (nomTablas.next()) {[m[41m[m
+[32m+[m[32m                contador++;[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            nombres = new String[contador];[m[41m[m
+[32m+[m[32m            nomTablas = conexion.getMetaData().getTables(null, null, null, tipotabla);[m[41m[m
+[32m+[m[32m            // ciclo para leer los nombres de cada tabla, que se encuentra en el campo 3 de cada registro[m[41m[m
+[32m+[m[32m            nomTablas.next();[m[41m[m
+[32m+[m[32m            for (int i = 1; i <= contador; i++) {[m[41m[m
+[32m+[m[32m                nombres[i - 1] = nomTablas.getString(3);[m[41m[m
+[32m+[m[32m                nomTablas.next();[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m        } catch (SQLException e) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(e.getMessage());[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m        // regresa arreglo con los nombres de las tablas[m[41m[m
+[32m+[m[32m        return nombres;[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public void crearTablas() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        String instruccion;[m[41m[m
+[32m+[m[32m        // crear tabla general[m[41m[m
+[32m+[m[32m        instruccion = "CREATE TABLE general ("[m[41m[m
+[32m+[m[32m                + "nombre_tramite VARCHAR(100) UNIQUE NOT NULL PRIMARY KEY, "[m[41m[m
+[32m+[m[32m                + "departamento_area VARCHAR(100) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "descripcion VARCHAR(300) NULL, "[m[41m[m
+[32m+[m[32m                + "nombre_archivo VARCHAR(50) UNIQUE NOT NULL, "[m[41m[m
+[32m+[m[32m                + "dias_alerta NUMERIC NOT NULL)";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[32m        // crear tabla meta_espec[m[41m[m
+[32m+[m[32m        instruccion = "CREATE TABLE meta_espec ("[m[41m[m
+[32m+[m[32m                + "nombre_campo VARCHAR(100) UNIQUE NOT NULL PRIMARY KEY, "[m[41m[m
+[32m+[m[32m                + "num_campo NUMERIC UNIQUE NOT NULL, "[m[41m[m
+[32m+[m[32m                + "obligatorio BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "tipo_campo VARCHAR(20) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "valor_defecto VARCHAR(200) NULL)";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[32m        // crear tabla meta_paso[m[41m[m
+[32m+[m[32m        instruccion = "CREATE TABLE meta_paso ("[m[41m[m
+[32m+[m[32m                + "nombre_paso VARCHAR(100) UNIQUE NOT NULL PRIMARY KEY, "[m[41m[m
+[32m+[m[32m                + "num_paso NUMERIC UNIQUE NOT NULL, "[m[41m[m
+[32m+[m[32m                + "responsable VARCHAR(50) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "con_fecha_limite BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "con_plantilla BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "plantilla VARCHAR(100) NULL, "[m[41m[m
+[32m+[m[32m                + "con_documento BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "con_cambio_estado BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "estado VARCHAR(50) NULL, "[m[41m[m
+[32m+[m[32m                + "secuencia NUMERIC NULL, "[m[41m[m
+[32m+[m[32m                + "obligatorio BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "con_repeticion BOOLEAN NOT NULL, "[m[41m[m
+[32m+[m[32m                + "repeticion NUMERIC NULL)";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[32m        //Falta[m[41m[m
+[32m+[m[32m        // crear tabla tramites especificos y pasos especificos[m[41m[m
+[32m+[m[32m        instruccion = "CREATE TABLE tramites_especificos ("[m[41m[m
+[32m+[m[32m                + "idRegistro NUMERIC UNIQUE NOT NULL, Nombre_del_solicitante VARCHAR(100) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "Título VARCHAR(100) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "Fecha_de_inicio VARCHAR(100) NOT NULL,"[m[41m[m
+[32m+[m[32m                + "Fecha_de_fin VARCHAR(100) NOT NULL,"[m[41m[m
+[32m+[m[32m                + "Estado VARCHAR(100) NOT NULL)";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m        //crear tabla tramites especificos_campos[m[41m[m
+[32m+[m[32m        instruccion = "CREATE TABLE tramites_especificos_campos ("[m[41m[m
+[32m+[m[32m                + "idCampo_IdRegistro_tramiteEspec NUMERIC,"[m[41m[m
+[32m+[m[32m                + "idCampo_numCampoMeta_espec NUMERIC,"[m[41m[m
+[32m+[m[32m                + "Valor VARCHAR(100) )";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m        // crear tabla consultas[m[41m[m
+[32m+[m[32m        instruccion = "CREATE TABLE consulta ("[m[41m[m
+[32m+[m[32m                + "nombre_consulta VARCHAR(100) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "nombre_campo VARCHAR(100) NOT NULL, "[m[41m[m
+[32m+[m[32m                + "valores_campo VARCHAR(100) NOT NULL )";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m        instruccion = "CREATE TABLE pasos_especificos ( " +[m[41m[m
+[32m+[m[32m        "idPasoEsp NUMERIC UNIQUE NOT NULL," +[m[41m[m
+[32m+[m[32m        "idRegistro_tramiteEsp NUMERIC NOT NULL," +[m[41m[m
+[32m+[m[32m        "num_paso NUMERIC NOT NULL," +[m[41m[m
+[32m+[m[32m        "fecha_limite VARCHAR(100)," +[m[41m[m
+[32m+[m[32m        "fecha_realizacion VARCHAR(100), " +[m[41m[m
+[32m+[m[32m        "documento VARCHAR(100)," +[m[41m[m
+[32m+[m[32m        "realizado BOOLEAN" +[m[41m[m
+[32m+[m[32m        ")";[m[41m[m
+[32m+[m[32m        realizarAccion(instruccion);[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public void eliminarRegistroTramite() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        realizarAccion("DELETE FROM general");[m[41m[m
+[32m+[m[32m        realizarAccion("DELETE FROM meta_espec");[m[41m[m
+[32m+[m[32m        realizarAccion("DELETE FROM meta_paso");[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public String[] obtenerGeneral() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            String[] registroGeneral = new String[5];[m[41m[m
+[32m+[m[32m            ResultSet resultados = realizarConsulta("SELECT nombre_tramite, departamento_area, descripcion, nombre_archivo, dias_alerta FROM general");[m[41m[m
+[32m+[m[32m            if (resultados == null) {[m[41m[m
+[32m+[m[32m                registroGeneral[0] = "";[m[41m[m
+[32m+[m[32m                registroGeneral[1] = "";[m[41m[m
+[32m+[m[32m                registroGeneral[2] = "";[m[41m[m
+[32m+[m[32m                registroGeneral[3] = "";[m[41m[m
+[32m+[m[32m                registroGeneral[4] = "1";[m[41m[m
+[32m+[m[32m            } else {[m[41m[m
+[32m+[m[32m                resultados.next();[m[41m[m
+[32m+[m[32m                registroGeneral[0] = resultados.getString(1);[m[41m[m
+[32m+[m[32m                registroGeneral[1] = resultados.getString(2);[m[41m[m
+[32m+[m[32m                registroGeneral[2] = resultados.getString(3);[m[41m[m
+[32m+[m[32m                registroGeneral[3] = resultados.getString(4);[m[41m[m
+[32m+[m[32m                registroGeneral[4] = String.valueOf(resultados.getInt(5));[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            return registroGeneral;[m[41m[m
+[32m+[m[32m        } catch (SQLException e) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(e.getMessage());[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public String[] obtenerNumCampos() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            String[] numCampos = null;[m[41m[m
+[32m+[m[32m            ResultSet resultados = realizarConsulta("SELECT count(num_campo) FROM meta_espec");[m[41m[m
+[32m+[m[32m            resultados.next();[m[41m[m
+[32m+[m[32m            numCampos = new String[resultados.getInt(1)];[m[41m[m
+[32m+[m[32m            resultados.close();[m[41m[m
+[32m+[m[32m            int i = 0;[m[41m[m
+[32m+[m[32m            resultados = realizarConsulta("SELECT num_campo FROM meta_espec");[m[41m[m
+[32m+[m[32m            while (resultados.next()) {[m[41m[m
+[32m+[m[32m                numCampos[i] = String.valueOf(resultados.getInt(1));[m[41m[m
+[32m+[m[32m                i++;[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            return numCampos;[m[41m[m
+[32m+[m[32m        } catch (SQLException e) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(e.getMessage());[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public String[] obtenerCampo(int numCampo) throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            String[] registroCampo = new String[4];[m[41m[m
+[32m+[m[32m            ResultSet resultados = realizarConsulta("SELECT nombre_campo, obligatorio, tipo_campo, valor_defecto FROM meta_espec WHERE num_campo = '" + numCampo + "'");[m[41m[m
+[32m+[m[32m            if (resultados == null) {[m[41m[m
+[32m+[m[32m                registroCampo[0] = "";[m[41m[m
+[32m+[m[32m                registroCampo[1] = "false";[m[41m[m
+[32m+[m[32m                registroCampo[2] = "null";[m[41m[m
+[32m+[m[32m                registroCampo[3] = "";[m[41m[m
+[32m+[m[32m            } else {[m[41m[m
+[32m+[m[32m                resultados.next();[m[41m[m
+[32m+[m[32m                registroCampo[0] = resultados.getString(1);[m[41m[m
+[32m+[m[32m                registroCampo[1] = resultados.getString(2);[m[41m[m
+[32m+[m[32m                registroCampo[2] = resultados.getString(3);[m[41m[m
+[32m+[m[32m                registroCampo[3] = resultados.getString(4);[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            return registroCampo;[m[41m[m
+[32m+[m[32m        } catch (SQLException e) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(e.getMessage() + " aqui");[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public String[] obtenerNumPasos() throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            String[] numPasos = null;[m[41m[m
+[32m+[m[32m            ResultSet resultados = realizarConsulta("SELECT count(num_paso) FROM meta_paso");[m[41m[m
+[32m+[m[32m            resultados.next();[m[41m[m
+[32m+[m[32m            numPasos = new String[resultados.getInt(1)];[m[41m[m
+[32m+[m[32m            resultados.close();[m[41m[m
+[32m+[m[32m            int i = 0;[m[41m[m
+[32m+[m[32m            resultados = realizarConsulta("SELECT num_paso FROM meta_paso ORDER BY num_paso");[m[41m[m
+[32m+[m[32m            while (resultados.next()) {[m[41m[m
+[32m+[m[32m                numPasos[i] = String.valueOf(resultados.getInt(1));[m[41m[m
+[32m+[m[32m                i++;[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            return numPasos;[m[41m[m
+[32m+[m[32m        } catch (SQLException e) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(e.getMessage());[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public String[] obtenerPaso(int numPaso) throws BaseDatosException {[m[41m[m
+[32m+[m[32m        try {[m[41m[m
+[32m+[m[32m            String[] registroPaso = new String[12];[m[41m[m
+[32m+[m[32m            ResultSet resultados = realizarConsulta("SELECT nombre_paso, responsable, con_fecha_limite, "[m[41m[m
+[32m+[m[32m                    + "con_plantilla, plantilla, con_documento, con_cambio_estado, estado, "[m[41m[m
+[32m+[m[32m                    + "secuencia, obligatorio, con_repeticion, repeticion FROM meta_paso WHERE num_paso = '" + numPaso + "'");[m[41m[m
+[32m+[m[32m            if (resultados == null) {[m[41m[m
+[32m+[m[32m                registroPaso[0] = "";[m[41m[m
+[32m+[m[32m                registroPaso[1] = "Propio";[m[41m[m
+[32m+[m[32m                registroPaso[2] = "false";[m[41m[m
+[32m+[m[32m                registroPaso[3] = "false";[m[41m[m
+[32m+[m[32m                registroPaso[4] = "";[m[41m[m
+[32m+[m[32m                registroPaso[5] = "true";[m[41m[m
+[32m+[m[32m                registroPaso[6] = "false";[m[41m[m
+[32m+[m[32m                registroPaso[7] = "";[m[41m[m
+[32m+[m[32m                registroPaso[8] = "";[m[41m[m
+[32m+[m[32m                registroPaso[9] = "true";[m[41m[m
+[32m+[m[32m                registroPaso[10] = "false";[m[41m[m
+[32m+[m[32m                registroPaso[11] = "1";[m[41m[m
+[32m+[m[32m            } else {[m[41m[m
+[32m+[m[32m                resultados.next();[m[41m[m
+[32m+[m[32m                registroPaso[0] = resultados.getString(1);[m[41m[m
+[32m+[m[32m                registroPaso[1] = resultados.getString(2);[m[41m[m
+[32m+[m[32m                registroPaso[2] = resultados.getString(3);[m[41m[m
+[32m+[m[32m                registroPaso[3] = resultados.getString(4);[m[41m[m
+[32m+[m[32m                registroPaso[4] = resultados.getString(5);[m[41m[m
+[32m+[m[32m                registroPaso[5] = resultados.getString(6);[m[41m[m
+[32m+[m[32m                registroPaso[6] = resultados.getString(7);[m[41m[m
+[32m+[m[32m                registroPaso[7] = resultados.getString(8);[m[41m[m
+[32m+[m[32m                registroPaso[8] = String.valueOf(resultados.getInt(9));[m[41m[m
+[32m+[m[32m                registroPaso[9] = resultados.getString(10);[m[41m[m
+[32m+[m[32m                registroPaso[10] = resultados.getString(11);[m[41m[m
+[32m+[m[32m                registroPaso[11] = String.valueOf(resultados.getInt(12));[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            return registroPaso;[m[41m[m
+[32m+[m[32m        } catch (SQLException e) {[m[41m[m
+[32m+[m[32m            throw new BaseDatosException(e.getMessage());[m[41m[m
+[32m+[m[32m        } finally {[m[41m[m
+[32m+[m[32m            cerrarConexion();[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public int numRegistrosMeta_espec() throws SQLException, BaseDatosException {[m[41m[m
+[32m+[m[32m        ResultSet rs1 = realizarConsulta("select count(*) from meta_espec");[m[41m[m
+[32m+[m[32m        int var = 0;[m[41m[m
+[32m+[m[32m        while (rs1.next()) {[m[41m[m
+[32m+[m[32m            var = rs1.getInt(1);[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m        cerrarConexion();[m[41m[m
+[32m+[m[32m        return var;[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    public String getDirectorio() {[m[41m[m
+[32m+[m[32m        return directorio + File.separator;[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[32m}[m[41m[m
