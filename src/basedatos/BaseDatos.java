@@ -18,6 +18,39 @@ public class BaseDatos {
     private String directorio;
 
     public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
+        //Hola ando editando jajajajkajajaj
         String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));
         File dir = null;
         File archivo = null;
