@@ -16,41 +16,7 @@ public class BaseDatos {
     private String pass;
     private String ruta;
     private String directorio;
-    // que tranza
     public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
-        //Hola ando editando jajajajkajajaj
         String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));
         File dir = null;
         File archivo = null;
@@ -294,7 +260,11 @@ public class BaseDatos {
             cerrarConexion();
         }
     }
-
+     
+    public String getDirectorio() {
+        return directorio + File.separator;
+    }
+     
     public String[] obtenerNumCampos() throws BaseDatosException {
         try {
             String[] numCampos = null;
@@ -413,8 +383,5 @@ public class BaseDatos {
         return var;
     }
 
-    public String getDirectorio() {
-        System.out.println("Prueba");
-        return directorio + File.separator;
-    }
+   
 }
