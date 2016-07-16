@@ -226,7 +226,7 @@ public class DialogoModificarPaso extends JPanel implements ActionListener, Item
     }
 
     public void actionPerformed(ActionEvent e) {
-        
+        //Añadir eventos
     }
 
     @Override
