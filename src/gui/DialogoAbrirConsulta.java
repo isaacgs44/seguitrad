@@ -26,7 +26,7 @@ public class DialogoAbrirConsulta extends JDialog implements ActionListener {
 	private JButton abrirBoton;
 	
 	private VentanaPrincipal ventanaPrincipal;
-
+        //comentario
 	public DialogoAbrirConsulta(VentanaPrincipal ventanaPrincipal) {	
 		super(ventanaPrincipal, "Abrir consulta", true);
 		setLayout(null);

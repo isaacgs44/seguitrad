@@ -16,7 +16,7 @@ public class BaseDatos {
     private String pass;
     private String ruta;
     private String directorio;
-
+    // que tranza
     public BaseDatos(String nombreArchivo, boolean esNueva) throws BaseDatosException {
         String nombreDirectorio = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));
         File dir = null;
