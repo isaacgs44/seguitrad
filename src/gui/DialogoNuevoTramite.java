@@ -16,7 +16,7 @@ import java.awt.event.WindowEvent;
 
 public class DialogoNuevoTramite extends JDialog implements ActionListener {
 	private static final long serialVersionUID = 4582284500903177972L;
-	
+	//hola
 	private JButton cancelarBoton;
 	private JButton siguienteBoton;
 	private JButton anteriorBoton;

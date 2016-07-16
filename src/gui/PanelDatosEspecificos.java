@@ -27,7 +27,7 @@ import excepcion.TramiteException;
 
 public class PanelDatosEspecificos extends JPanel implements ActionListener {
 	private static final long serialVersionUID = -3353935489561706446L;
-	
+	//hola
 	private JTextField campoNombre;
 	private JComboBox<Tipo> comboTipo;
 	private JLabel etiquetaValorDefecto;
