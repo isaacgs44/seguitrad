@@ -26,34 +26,18 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
     private JCheckBox[] checkDocumento;
     private JButton[] mostrarDocButon;
     private JButton[] verPlantillaButon;
-    private ArrayList<PasoEspecifico> pasoEspecificos;
-    private ArrayList<TramiteEspecifico> tramiteEspecificos;
     private ArrayList<PasoEspecifico> pasosRealizados;
-    private int tramiteId;
 
-    public PanelPasoRealizado(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
-        tramiteEspecificos = ventanaPrincipal.getLista().getListaTramitesEsp();
-        pasosRealizados = new ArrayList<>();
-        int tramiteActual = tramiteEspecifico.getIdTramite();
-        tramiteId=tramiteActual;
-        for (TramiteEspecifico te : tramiteEspecificos) {
-            int numPasosEsp = ventanaPrincipal.getLista().getListaTramitesEsp().get(te.getIdTramite()).getPasosEspecificos().size();
-            if (te.getIdTramite() == tramiteActual) {
-                while (numPasosEsp >= 1) {
-                    pasoEspecificos = ventanaPrincipal.getLista().getListaTramitesEsp().get(te.getIdTramite()).getPasosEspecificos();
-                    numPasosEsp--;
-                }
-            }
-        }
+    public PanelPasoRealizado(TramiteEspecifico tramiteEspecifico) {
         int i = 0;
-        for (PasoEspecifico pe : pasoEspecificos) {
+        pasosRealizados = new ArrayList<>();
+        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
             if (pe.isRealizado()) {
-                //pasosRealizados.add(pe);
-                pasosRealizados.add(tramiteActual, pe);
+                pasosRealizados.add(pe);
                 i++;
             }
         }
-        crearPanel(i, tramiteActual);
+        crearPanel(i, tramiteEspecifico.getIdTramite());
     }
 
     private void crearPanel(int n, int tramiteActual) {

@@ -4,55 +4,42 @@ import java.util.Date;
 import excepcion.TramiteEspecificoException;
 import gui.VentanaPrincipal;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.util.ArrayList;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
 import javax.swing.event.EventListenerList;
 import javax.swing.plaf.BorderUIResource;
 
 public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico> {
 
     private JPanel panelContenedor;
-    private ArrayList<PasoEspecifico> pasoEspecificos;
-    private ArrayList<TramiteEspecifico> tramiteEspecificos;
     private JList lista;
+    private String nombrePaso;
+    private int repeticion;
+    private boolean realizado;
+    private Date fechaLimite;
+    private Date fechaRealizacion;
+    private String documento;
+    private int numPaso;
 
-    public PasoEspecifico(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
+    public PasoEspecifico(TramiteEspecifico tramiteEspecifico) {
         //Escribir funcionalidad
-        System.out.println("Pasos especificos de tramite en la posicion seleccionada");
-        tramiteEspecificos = ventanaPrincipal.getLista().getListaTramitesEsp();
-        System.out.println("Tamaño de tramites especificos " + tramiteEspecificos.size());
-        int tramiteActual = tramiteEspecifico.getIdTramite();
         //pasoEspecificos = new ArrayList<>();
-        for (TramiteEspecifico te : tramiteEspecificos) {
-            int numPasosEsp = ventanaPrincipal.getLista().getListaTramitesEsp().get(te.getIdTramite()).getPasosEspecificos().size();
-            System.out.println("NUMERO DE PASOS ESPECIFICOS "+numPasosEsp);
-            System.out.println("Indice del tramite actual "+tramiteActual);
-            if (te.getIdTramite() == tramiteActual) {
-                while (numPasosEsp >= 1) {
-                    pasoEspecificos = ventanaPrincipal.getLista().getListaTramitesEsp().get(te.getIdTramite()).getPasosEspecificos();
-                    numPasosEsp--;
-                }
+        panelContenedor = new JPanel();
+        int numPasos =0;
+        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
+        panelContenedor.setBounds(115, 480, 250, 140);
+        for (PasoEspecifico pe: tramiteEspecifico.getPasosEspecificos()) {
+            if(!pe.isRealizado()){
+                numPasos++;
             }
         }
-        for (PasoEspecifico pe : pasoEspecificos) {
-            System.out.println(pe.getNombrePaso());
-        }
-
-        panelContenedor = new JPanel();
-        int numPasos = tramiteEspecifico.getPasosEspecificos().size();
-        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
         String todo_pasos[] = new String[numPasos];
         int i = 0;
-        for (PasoEspecifico pe : pasoEspecificos) {
-            System.out.println(pe.isRealizado());
+        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
             if (!pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;
@@ -62,40 +49,42 @@ public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico>
         lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         lista.setBackground(Color.decode("#E5E5E5"));
         lista.setBorder(new BorderUIResource.LineBorderUIResource(Color.decode("#E5E5E5")));
-        
-       //JScrollPane barraDesplazamiento = new JScrollPane(lista);
-       //barraDesplazamiento.setBounds(10, 30, 250, 50);
         panelContenedor.add(lista);
         this.add(panelContenedor);
     }
 
     public PasoEspecifico() {
     }
-    private String nombrePaso;
-    private int repeticion;
-    private boolean realizado;
-    private Date fechaLimite;
-    private Date fechaRealizacion;
-    private String documento;
-    private int numPaso;
 
-    public int getNumPaso() {
-        return numPaso;
-    }
-    
-    public String nombrePasoSeleccionado(int posicion){
-        String nombre="hola";
-        String []todo_pasos= new String[pasoEspecificos.size()];
-        int i=0;
-        for(PasoEspecifico pe: pasoEspecificos){
+    public void realizarPaso(Date fechaRealizacion, boolean realizado, String documento, int indice, TramiteEspecifico tramiteEspecifico) {
+        String[] todo_pasos = new String[tramiteEspecifico.getPasosEspecificos().size()];
+        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+            int i = 0;
             if (!pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;
             }
-            for (int j = 0; j < todo_pasos.length; j++) {
-                if(j==posicion){
-                return  nombre=todo_pasos[j];
-                }
+        }
+    }
+
+    public int getNumPaso() {
+        return numPaso;
+    }
+
+    public String nombrePasoSeleccionado(int posicion, TramiteEspecifico tramiteEspecifico) {
+        String nombre = " ";
+        String[] todo_pasos = new String[tramiteEspecifico.getPasosEspecificos().size()];
+        int i = 0;
+        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        for (int j = 0; j < todo_pasos.length; j++) {
+            if (j == posicion) {
+                nombre = todo_pasos[j];
+                return nombre;
             }
         }
         return nombre;

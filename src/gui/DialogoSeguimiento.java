@@ -22,9 +22,8 @@ import dominio.Paso;
 import dominio.PasoEspecifico;
 import dominio.TramiteEspecifico;
 import java.awt.Color;
-import java.awt.Component;
+import java.text.DateFormat;
 import java.util.ArrayList;
-import javax.swing.ListCellRenderer;
 
 public class DialogoSeguimiento extends JDialog implements ActionListener {
 
@@ -58,7 +57,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     private VentanaPrincipal ventanaPrincipal;
     private TramiteEspecifico tramiteEspecifico;
     private PasoEspecifico paso;
-    private String nombre = " ";
+    private JLabel etiquetaNombre;
 
     public DialogoSeguimiento(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
         super(ventanaPrincipal, "Seguimiento", true);
@@ -137,6 +136,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         etiquetaFecha.setBounds(300, 180, 150, 50);
         add(etiquetaFecha);
 
+
         JLabel etiquetaPlantilla = new JLabel("Plantilla");
         etiquetaPlantilla.setBounds(440, 180, 150, 50);
         add(etiquetaPlantilla);
@@ -165,30 +165,32 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         eliminarPasoBoton.setIcon(new ImageIcon(getClass().getResource("/imagenes/eliminarPaso.png")));
         add(eliminarPasoBoton);
 
+
         JLabel etiquetaPasosDisponibles = new JLabel("Pasos disponibles : ");
         etiquetaPasosDisponibles.setBounds(120, 420, 200, 50);
         etiquetaPasosDisponibles.setFont(new java.awt.Font("Tahoma", 0, 20));
         add(etiquetaPasosDisponibles);
 
+
         modeloDescripcion = new DefaultListModel<String>();
         descripcion = new JList<String>(modeloDescripcion);
         descripcion.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         add(descripcion);
-     
-        paso = new PasoEspecifico(ventanaPrincipal, tramiteEspecifico);
+
+        paso = new PasoEspecifico(tramiteEspecifico);
         scrollDescripcion = new JScrollPane(paso);
-        scrollDescripcion.setBounds(80,470,250,150);
+        scrollDescripcion.setBounds(80, 470, 250, 150);
         scrollDescripcion.setAutoscrolls(true);
         add(scrollDescripcion);
-        
+
         editarBoton = new JButton("Editar");
         editarBoton.setBounds(400, 500, 150, 30);
         editarBoton.setIcon(new ImageIcon(getClass().getResource("/imagenes/editar.png")));
         editarBoton.addActionListener(this);
         add(editarBoton);
 
-        JLabel etiquetaNombre = new JLabel("Nombre: " + nombre);
-        etiquetaNombre.setBounds(630, 435, 150, 50);
+        etiquetaNombre = new JLabel("Nombre: ");
+        etiquetaNombre.setBounds(630, 435, 530, 50);
         add(etiquetaNombre);
 
         JLabel etiquetaFechaRealizacion = new JLabel("Fecha realizacion: ");
@@ -201,6 +203,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         agregarBoton = new JButton("Agregar");
         agregarBoton.setBounds(800, 500, 130, 30);
         agregarBoton.setIcon(new ImageIcon(getClass().getResource("/imagenes/agregar.png")));
+        agregarBoton.addActionListener(this);
         add(agregarBoton);
 
         JLabel etiquetaDocumentoEspecifico = new JLabel("Documento especifico: ");
@@ -232,7 +235,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         cancelarBoton.setIcon(new ImageIcon(getClass().getResource("/imagenes/cancelar.png")));
         add(cancelarBoton);
 
-        panelPasoRealizado = new PanelPasoRealizado(ventanaPrincipal, tramiteEspecifico);
+        panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico);
         scroll = new JScrollPane(panelPasoRealizado);
         scroll.setBounds(50, 220, 700, 200);
         add(scroll);
@@ -263,6 +266,23 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         verPlantillaBoton.setVisible(true);
     }
 
+    public void ocultarElementos() {
+        fechaChooser.setVisible(false);
+        agregarBoton.setVisible(false);
+        datoEspecifico.setVisible(false);
+        carpetaBoton.setVisible(false);
+        verPlantillaBoton.setVisible(false);
+    }
+
+    public void pasoRealizado( int indice) {
+        String[] valores = new String[1];
+        DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
+        Date d = new Date(fechaChooser.getDate().getTime());
+        valores[0] = formato.format(d);
+        paso.realizarPaso(d, true, "ruta vacia", indice,tramiteEspecifico);
+        ocultarElementos();
+    }
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == cancelarBoton) {
             int respuesta = JOptionPane.showConfirmDialog(this,
@@ -288,17 +308,22 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             int[] selectedIndices = paso.getLista().getSelectedIndices();
             if (selectedIndices.length != 0) {
                 mostrarElementos();
-                nombre = paso.nombrePasoSeleccionado(selectedIndices[0]);
-                System.out.println("NOMBTYUJM " + nombre);
+                etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0],tramiteEspecifico));
             } else {
                 JOptionPane.showMessageDialog(this, "Debe seleccionar un paso especifico",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+        if (e.getSource() == agregarBoton) {
+            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int posicion=selectedIndices[0];
+            pasoRealizado(posicion);
+        }
+
     }
     /*public static void main(String[] ar) {
-     DialogoSeguimiento formulario1=new DialogoSeguimiento();
-     formulario1.setBounds(10,20,1040,730);
-     formulario1.setVisible(true);
-     } */
+    DialogoSeguimiento formulario1=new DialogoSeguimiento();
+    formulario1.setBounds(10,20,1040,730);
+    formulario1.setVisible(true);
+    } */
 }
