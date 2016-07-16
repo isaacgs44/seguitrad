@@ -414,6 +414,7 @@ public class BaseDatos {
     }
 
     public String getDirectorio() {
+        System.out.println("Prueba");
         return directorio + File.separator;
     }
 }
