@@ -200,6 +200,11 @@ public class TramiteEspecifico {
     public ArrayList<Campo> getCampos() {
         return campos;
     }
+
+    public void setPasosEspecificos(ArrayList<PasoEspecifico> pasosEspecificos) {
+        this.pasosEspecificos = pasosEspecificos;
+    }
+
     
     
 }

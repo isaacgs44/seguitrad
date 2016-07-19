@@ -35,17 +35,19 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
     private ArrayList<PasoEspecifico> pasosRealizados;
     private TramiteEspecifico tramiteEspecifico;
     private VentanaPrincipal ventanaPrincipal;
+    ArrayList<PasoEspecifico> pasosEspecificos;
     String nombreBotonPlantilla[];
     String nombrePaso_Plantilla[];
     String nombreBotonDocumento[];
     String nombrePaso_Documento[];
 
-    public PanelPasoRealizado(TramiteEspecifico tramiteEspecifico, VentanaPrincipal ventanaPrincipal) {
+    public PanelPasoRealizado(TramiteEspecifico tramiteEspecifico, ArrayList<PasoEspecifico> pasosEspecificos, VentanaPrincipal ventanaPrincipal) {
         int i = 0;
+        this.pasosEspecificos=pasosEspecificos;
         pasosRealizados = new ArrayList<>();
         this.tramiteEspecifico = tramiteEspecifico;
         this.ventanaPrincipal = ventanaPrincipal;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (pe.isRealizado()) {
                 pasosRealizados.add(pe);
                 i++;
@@ -231,7 +233,7 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
 
     private PasoEspecifico obtenerPasoSeleccionado(int indice) {
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (pe.isRealizado()) {
                 if (i == indice) {
                     return pe;

@@ -53,7 +53,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     private DefaultListModel<String> modeloDescripcion;
     private JScrollPane scrollDescripcion;
     private JButton editarBoton;
-    private final JTextField datoEspecifico;
+    private JTextField datoEspecifico;
     private JButton carpetaBoton;
     private JButton verPlantillaBoton;
     private JButton aceptarBoton;
@@ -64,6 +64,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     private JScrollPane scroll;
     private VentanaPrincipal ventanaPrincipal;
     private TramiteEspecifico tramiteEspecifico;
+    private ArrayList<PasoEspecifico> pasosModificados;
     private PasoEspecifico paso;
     private JLabel etiquetaNombre;
 
@@ -72,7 +73,22 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         setLayout(null);
         this.ventanaPrincipal = ventanaPrincipal;
         this.tramiteEspecifico = tramiteEspecifico;
+        pasosModificados = new ArrayList<>();
+        for (PasoEspecifico p : tramiteEspecifico.getPasosEspecificos()) {
+            PasoEspecifico p2 = new PasoEspecifico();
+            p2.setNombrePaso(p.getNombrePaso());
+            p2.setNumPaso(p.getNumPaso());
+            p2.setDocumento(p.getDocumento());
+            p2.setFechaLimite(p.getFechaLimite());
+            p2.setFechaRealizacion(p.getFechaRealizacion());
+            p2.setRealizado(p.isRealizado());
+            p2.setRepeticion(p.getRepeticion());
+            pasosModificados.add(p2);
+        }
+        initComponents(tramiteEspecifico);
+    }
 
+    public void initComponents(TramiteEspecifico tramiteEspecifico) {
         JLabel etiquetaNombreSolicitante = new JLabel("Nombre del solicitante : ");
         etiquetaNombreSolicitante.setBounds(60, 5, 150, 50);
         add(etiquetaNombreSolicitante);
@@ -186,7 +202,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         descripcion.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         add(descripcion);
 
-        paso = new PasoEspecifico(tramiteEspecifico);
+        paso = new PasoEspecifico(pasosModificados);
         scrollDescripcion = new JScrollPane(paso);
         scrollDescripcion.setBounds(80, 470, 250, 150);
         scrollDescripcion.setAutoscrolls(true);
@@ -206,7 +222,6 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         etiquetaFechaRealizacion.setBounds(630, 465, 150, 50);
         add(etiquetaFechaRealizacion);
         fechaChooser = new JDateChooser(new Date());
-        //fechaChooser.setPreferredSize(new Dimension(100,30));
         fechaChooser.setBounds(630, 500, 100, 30);
         add(fechaChooser);
         agregarBoton = new JButton("Agregar");
@@ -247,7 +262,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         cancelarBoton.setIcon(new ImageIcon(getClass().getResource("/imagenes/cancelar.png")));
         add(cancelarBoton);
 
-        panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico, ventanaPrincipal);
+        panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico, pasosModificados, ventanaPrincipal);
         scroll = new JScrollPane(panelPasoRealizado);
         scroll.setBounds(50, 220, 700, 200);
         add(scroll);
@@ -258,12 +273,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         fechaFin.setEditable(false);
         estado.setEditable(false);
 
-        fechaChooser.setVisible(false);
-        agregarBoton.setVisible(false);
-        datoEspecifico.setVisible(false);
-        carpetaBoton.setVisible(false);
-        verPlantillaBoton.setVisible(false);
-
+        ocultarElementos();
         setSize(1040, 730);
         setLocationRelativeTo(ventanaPrincipal);
         setResizable(false);
@@ -271,35 +281,36 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     }
 
     public void mostrarElementos() {
-        fechaChooser.setVisible(true);
-        agregarBoton.setVisible(true);
-        datoEspecifico.setVisible(true);
-        carpetaBoton.setVisible(true);
-        verPlantillaBoton.setVisible(true);
+        fechaChooser.setEnabled(true);
+        agregarBoton.setEnabled(true);
+        datoEspecifico.setEnabled(true);
+        carpetaBoton.setEnabled(true);
+        verPlantillaBoton.setEnabled(true);
     }
 
     public void ocultarElementos() {
-        fechaChooser.setVisible(false);
-        agregarBoton.setVisible(false);
-        datoEspecifico.setVisible(false);
-        carpetaBoton.setVisible(false);
-        verPlantillaBoton.setVisible(false);
+        fechaChooser.setEnabled(false);
+        agregarBoton.setEnabled(false);
+        datoEspecifico.setEnabled(false);
+        carpetaBoton.setEnabled(false);
+        verPlantillaBoton.setEnabled(false);
     }
 
     public void pasoRealizado(int indice) {
         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
         Date d = new Date(fechaChooser.getDate().getTime());
         formato.format(d);
-        paso.realizarPaso(d, true, datoEspecifico.getText(), indice, tramiteEspecifico);
+        PasoEspecifico p = new PasoEspecifico(pasosModificados);
+        p.realizarPaso(d, true, datoEspecifico.getText(), indice, pasosModificados);
         ocultarElementos();
     }
 
     public void verPlantilla(String ruta) {
-        File path = new File(ruta);
         try {
+            File path = new File(ruta);
             Desktop.getDesktop().open(path);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "El paso no tiene una plantilla definida",
+            JOptionPane.showMessageDialog(this, "No se ha cargado una plantilla al paso",
                     "Ver plantilla", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -323,47 +334,66 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             new DialogoEliminarRegistro(ventanaPrincipal);
         }
         if (e.getSource() == aceptarBoton) {
+            tramiteEspecifico.setPasosEspecificos(pasosModificados);
             dispose();
         }
         if (e.getSource() == editarBoton) {
             int[] selectedIndices = paso.getLista().getSelectedIndices();
             if (selectedIndices.length != 0) {
                 mostrarElementos();
-                etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0], tramiteEspecifico));
+                etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0], pasosModificados));
+                datoEspecifico.setText("");
+                datoEspecifico.setEditable(false);
             } else {
                 JOptionPane.showMessageDialog(this, "Debe seleccionar un paso especifico",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
         if (e.getSource() == agregarBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
-            int posicion = selectedIndices[0];
-            pasoRealizado(posicion);
-            dispose();
-            new DialogoSeguimiento(ventanaPrincipal, tramiteEspecifico);
+            try {
+                int[] selectedIndices = paso.getLista().getSelectedIndices();
+                int posicion = selectedIndices[0];
+                if(!"".equals(datoEspecifico.getText()) && datoEspecifico.getText()!=null){
+                    guardarDocumentoEspecifico(datoEspecifico.getText(), posicion);
+                }
+                pasoRealizado(posicion);
+                resetPanel();
+            } catch (ArrayIndexOutOfBoundsException Ex) {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar un paso especifico de la lista",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
         if (e.getSource() == verPlantillaBoton) {
             int[] selectedIndices = paso.getLista().getSelectedIndices();
             int posicion = selectedIndices[0];
-            verPlantilla(obtenerPlantilla(posicion, tramiteEspecifico));
+            if (obtenerPlantilla(posicion).equals("Sin plantilla")) {
+                verPlantillaBoton.setEnabled(false);
+            } else {
+                verPlantilla(obtenerPlantilla(posicion));
+            }
         }
         if (e.getSource() == carpetaBoton) {
-            datoEspecifico.setEditable(true);
-            seleccionarDocumentoEspecifico();
+            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int posicion = selectedIndices[0];
+            if (isconDocumento(posicion)) {
+                datoEspecifico.setEditable(true);
+                seleccionarDocumentoEspecifico();
+            } else {
+                datoEspecifico.setEditable(false);
+            }
         }
         if (e.getSource() == eliminarPasoBoton) {
             if (panelPasoRealizado.indiceCheck() != -1) {
                 eliminarPasoRealizado(panelPasoRealizado.indiceCheck());
-                dispose();
-                new DialogoSeguimiento(ventanaPrincipal, tramiteEspecifico);
+                resetPanel();
             }
         }
 
         if (e.getSource() == verDocBoton) {
             if (panelPasoRealizado.indiceCheck() != -1) {
                 int indiceS = panelPasoRealizado.indiceCheck();
-                if (obtenerPasoSeleccionado(indiceS).getDocumento() != null && !"".equals(obtenerPasoSeleccionado(indiceS).getDocumento())) {
-                    File path = new File(obtenerPasoSeleccionado(indiceS).getDocumento());
+                if (getPasoSeleccionadoRealizado(indiceS).getDocumento() != null && !"".equals(getPasoSeleccionadoRealizado(indiceS).getDocumento())) {
+                    File path = new File(getPasoSeleccionadoRealizado(indiceS).getDocumento());
                     try {
                         Desktop.getDesktop().open(path);
                     } catch (IOException ex) {
@@ -378,7 +408,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         if (e.getSource() == cargarDocBoton) {
             if (panelPasoRealizado.indiceCheck() != -1 && !panelPasoRealizado.obtenerNombreBotonDocumento(panelPasoRealizado.indiceCheck()).equals("Sin documento")) {
                 int indiceS = panelPasoRealizado.indiceCheck();
-                if (obtenerPasoSeleccionado(indiceS).getDocumento() == null || "".equals(obtenerPasoSeleccionado(indiceS).getDocumento())) {
+                if (getPasoSeleccionadoRealizado(indiceS).getDocumento() == null || "".equals(getPasoSeleccionadoRealizado(indiceS).getDocumento())) {
                     System.out.println("Indice seleccionado: " + panelPasoRealizado.indiceCheck());
                     FileDialog fd = new FileDialog(new Frame(), "Seleccionar documento ", FileDialog.LOAD);
                     fd.setDirectory(System.getProperty("user.dir"));
@@ -392,28 +422,42 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                         String extension = ruta.substring(ruta.lastIndexOf('.'));
                         String tramitante = tramiteEspecifico.obtenerValores(0)[0];
                         String rutaNueva;
-                        rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + obtenerPasoSeleccionado(indiceS).getNombrePaso() + extension;
+                        rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + getPasoSeleccionadoRealizado(indiceS).getNombrePaso() + extension;
                         UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
-                        obtenerPasoSeleccionado(indiceS).setDocumento(rutaNueva);
+                        getPasoSeleccionadoRealizado(indiceS).setDocumento(rutaNueva);
                         JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
                                 "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                        resetPanel();
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Ya existe documento",
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } 
+            }
         }
 
         if (e.getSource() == quitarDocBoton) {
-
+            if (panelPasoRealizado.indiceCheck() != -1) {
+                int indiceS = panelPasoRealizado.indiceCheck();
+                if (getPasoSeleccionadoRealizado(indiceS).getDocumento() != null && !getPasoSeleccionadoRealizado(indiceS).getDocumento().equals("")) {
+                    File path = new File(getPasoSeleccionadoRealizado(indiceS).getDocumento());
+                    path.delete();
+                    getPasoSeleccionadoRealizado(indiceS).setDocumento(null);
+                    JOptionPane.showMessageDialog(this, "Documento eliminado",
+                            "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                    resetPanel();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No hay documento",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
 
     }
 
     public void eliminarPasoRealizado(int indice) {
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosModificados) {
             if (pe.isRealizado()) {
                 if (i == indice) {
                     pe.setRealizado(false);
@@ -423,32 +467,62 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         }
     }
 
-    public String obtenerPlantilla(int indice, TramiteEspecifico tramiteEspecifico) {
+    public String obtenerPlantilla(int indice) {
         int numPasosFaltantes = 0;
         String plantilla = null;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosModificados) {
             if (!pe.isRealizado()) {
                 numPasosFaltantes++;
             }
         }
         String[] todo_pasos = new String[numPasosFaltantes];
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosModificados) {
             if (!pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;
             }
         }
         for (Paso p : ventanaPrincipal.getLista().getTramite().getPasos()) {
-            if (todo_pasos[indice].contains(p.getNombrePaso())) {
+            if (todo_pasos[indice].contains(p.getNombrePaso()) && p.isConPlantilla()) {
                 plantilla = p.getPlantilla();
+            }
+            if (todo_pasos[indice].contains(p.getNombrePaso()) && p.isConPlantilla() == false) {
+                plantilla = "Sin plantilla";
             }
         }
         return plantilla;
     }
 
+    public boolean isconDocumento(int indice) {
+        int numPasosFaltantes = 0;
+        boolean conDocumento = false;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                numPasosFaltantes++;
+            }
+        }
+        String[] todo_pasos = new String[numPasosFaltantes];
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        for (Paso p : ventanaPrincipal.getLista().getTramite().getPasos()) {
+            if (todo_pasos[indice].contains(p.getNombrePaso()) && p.isConDocumento()) {
+                conDocumento = p.isConDocumento();
+            }
+            if (todo_pasos[indice].contains(p.getNombrePaso()) && p.isConDocumento() == false) {
+                conDocumento = p.isConDocumento();
+            }
+        }
+        return conDocumento;
+    }
+
     private void seleccionarDocumentoEspecifico() {
-        FileDialog fd = new FileDialog(new Frame(), "Seleccionar plantilla ", FileDialog.LOAD);
+        FileDialog fd = new FileDialog(new Frame(), "Seleccionar documento", FileDialog.LOAD);
         if (datoEspecifico.getText().isEmpty()) {
             fd.setDirectory(System.getProperty("user.dir"));
             fd.setFile("*.pdf; *.doc; *.docx");
@@ -461,11 +535,40 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         } else {
             datoEspecifico.setText(fd.getDirectory() + fd.getFile());
         }
+        datoEspecifico.setEnabled(false);
     }
 
-    private PasoEspecifico obtenerPasoSeleccionado(int indice) {
+    private void guardarDocumentoEspecifico(String ruta, int indice) {
+        int numPasosFaltantes = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                numPasosFaltantes++;
+            }
+        }
+        String[] todo_pasos = new String[numPasosFaltantes];
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        JOptionPane.showMessageDialog(this, "El sistema comenzará a cargar el documento."
+                + "\n Es necesario esperar un momento",
+                "Aviso", JOptionPane.INFORMATION_MESSAGE);
+        String extension = ruta.substring(ruta.lastIndexOf('.'));
+        String tramitante = tramiteEspecifico.obtenerValores(0)[0];
+        String rutaNueva;
+        rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + todo_pasos[indice] + extension;
+        UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
+        getPasoSeleccionadoSinRealizar(indice).setDocumento(rutaNueva);
+        JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
+                "Aviso", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private PasoEspecifico getPasoSeleccionadoRealizado(int indice) {
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
             if (pe.isRealizado()) {
                 if (i == indice) {
                     return pe;
@@ -474,5 +577,39 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             }
         }
         return null;
+    }
+
+    private PasoEspecifico getPasoSeleccionadoSinRealizar(int indice) {
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                if (i == indice) {
+                    return pe;
+                }
+                i++;
+            }
+        }
+        return null;
+    }
+
+    public void resetPanel() {
+        remove(scroll); // eliminamos paneles
+        remove(scrollDescripcion);
+
+        paso = new PasoEspecifico(pasosModificados); // creamos panel con nuevos componentes
+        scrollDescripcion = new JScrollPane(paso);
+        scrollDescripcion.setBounds(80, 470, 250, 150);
+        scrollDescripcion.setAutoscrolls(true);
+        panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico, pasosModificados, ventanaPrincipal);
+        scroll = new JScrollPane(panelPasoRealizado);
+        scroll.setBounds(50, 220, 700, 200);
+        add(scroll); //aÃ±adimos los nuevos paneles
+        add(scrollDescripcion);
+
+        scroll.revalidate(); // restablece panel basado en la nueva lista de componentes
+        scrollDescripcion.revalidate();
+
+        scroll.repaint();   // pinta el panel
+        scrollDescripcion.repaint();
     }
 }

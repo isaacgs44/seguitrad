@@ -25,21 +25,21 @@ public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico>
     private String documento;
     private int numPaso;
 
-    public PasoEspecifico(TramiteEspecifico tramiteEspecifico) {
+    public PasoEspecifico(ArrayList<PasoEspecifico> pasoEspecificos) {
         //Escribir funcionalidad
         //pasoEspecificos = new ArrayList<>();
         panelContenedor = new JPanel();
         int numPasos = 0;
         panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
         panelContenedor.setBounds(115, 480, 250, 140);
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasoEspecificos) {
             if (!pe.isRealizado()) {
                 numPasos++;
             }
         }
         String todo_pasos[] = new String[numPasos];
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasoEspecificos) {
             if (!pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;
@@ -56,23 +56,23 @@ public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico>
     public PasoEspecifico() {
     }
 
-    public void realizarPaso(Date fechaRealizacion, boolean realizado, String documento, int indice, TramiteEspecifico tramiteEspecifico) {
+    public void realizarPaso(Date fechaRealizacion, boolean realizado, String documento, int indice, ArrayList<PasoEspecifico> pasosEspecificos) {
         int numPasosFaltantes = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (!pe.isRealizado()) {
                 numPasosFaltantes++;
             }
         }
         String[] todo_pasos = new String[numPasosFaltantes];
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (!pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;
             }
         }
         System.out.println("Indice Seleccionado " + indice);
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (todo_pasos[indice].equals(pe.getNombrePaso())) {
                 if (!pe.isRealizado()) {
                     pe.setRealizado(realizado);
@@ -87,11 +87,11 @@ public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico>
         return numPaso;
     }
 
-    public String nombrePasoSeleccionado(int posicion, TramiteEspecifico tramiteEspecifico) {
+    public String nombrePasoSeleccionado(int posicion, ArrayList<PasoEspecifico> pasosEspecificos) {
         String nombre = " ";
-        String[] todo_pasos = new String[tramiteEspecifico.getPasosEspecificos().size()];
+        String[] todo_pasos = new String[pasosEspecificos.size()];
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (!pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;

@@ -27,7 +27,7 @@ import excepcion.TramiteException;
 
 public class PanelDatosEspecificos extends JPanel implements ActionListener {
 	private static final long serialVersionUID = -3353935489561706446L;
-	//hola
+	
 	private JTextField campoNombre;
 	private JComboBox<Tipo> comboTipo;
 	private JLabel etiquetaValorDefecto;
@@ -546,11 +546,13 @@ public class PanelDatosEspecificos extends JPanel implements ActionListener {
 			cadenaOpcion = modeloListaOpciones.getElementAt(posicion);
 			modeloListaOpciones.remove(posicion);
 			modeloListaOpciones.addElement(cadenaOpcion);
+			valorDefectoOpciones.setSelectedIndex(modeloListaOpciones.getSize() - 1);
 		} else {
 			// mover la opción una posición arriba
 			cadenaOpcion = modeloListaOpciones.getElementAt(posicion);
 			modeloListaOpciones.remove(posicion);
 			modeloListaOpciones.insertElementAt(cadenaOpcion, posicion - 1);
+			valorDefectoOpciones.setSelectedIndex(posicion - 1);
 		}
 	}
 
@@ -567,11 +569,13 @@ public class PanelDatosEspecificos extends JPanel implements ActionListener {
 			cadenaOpcion = modeloListaOpciones.getElementAt(posicion);
 			modeloListaOpciones.remove(posicion);
 			modeloListaOpciones.insertElementAt(cadenaOpcion, 0);
+			valorDefectoOpciones.setSelectedIndex(0);
 		} else {
 			// mover la opción una posición abajo
 			cadenaOpcion = modeloListaOpciones.getElementAt(posicion);
 			modeloListaOpciones.remove(posicion);
 			modeloListaOpciones.insertElementAt(cadenaOpcion, posicion + 1);
+			valorDefectoOpciones.setSelectedIndex(posicion + 1);
 		}
 	}
 
