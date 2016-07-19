@@ -362,7 +362,8 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
         for (Paso p : pasos) {
                 for (int i = 1; i <= p.getRepeticion(); i++) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                    pasoEspecifico.setNombrePaso(p.getNombrePaso());
+                    String nombre_paso= p.getRepeticion()==1 ? p.getNombrePaso():p.getNombrePaso()+" "+i;
+                    pasoEspecifico.setNombrePaso(nombre_paso);
                     pasoEspecifico.setNumPaso(p.getNumPaso());
                     pasoEspecifico.setRepeticion(p.getRepeticion());
                     pasoEspecifico.setRealizado(false);

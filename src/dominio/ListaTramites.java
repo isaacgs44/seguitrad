@@ -142,12 +142,13 @@ public class ListaTramites {
     }
 
     /**
-     * Método que borra la Base de Datos y la vuelve a crear con todas las modificaciones
-     * 
+     * Método que borra la Base de Datos y la vuelve a crear con todas las
+     * modificaciones
+     *
      * @see Consulta
      * @throws BaseDatosException
      *
-     * 
+     *
      * @autor isaac - cresencio
      */
     public void guardarArchivo() throws BaseDatosException {
@@ -168,17 +169,18 @@ public class ListaTramites {
     }
 
     /**
-     * Método que recupera todos los trámites específicos y consultas de la base de datos.
-     * 
-     * @see Consulta#agregarCampo(dominio.Campo, java.lang.String[]) 
+     * Método que recupera todos los trámites específicos y consultas de la base
+     * de datos.
+     *
+     * @see Consulta#agregarCampo(dominio.Campo, java.lang.String[])
      * @see #agregarConsulta(dominio.Consulta)
-     * @see Tramite#recuperarTramite(basedatos.BaseDatos, java.lang.String) 
-     * @see TramiteEspecifico#agregarCampo(dominio.Campo, java.lang.String[]) 
-     * @see TramiteEspecifico#agregarPasoEspecifico(dominio.PasoEspecifico) 
+     * @see Tramite#recuperarTramite(basedatos.BaseDatos, java.lang.String)
+     * @see TramiteEspecifico#agregarCampo(dominio.Campo, java.lang.String[])
+     * @see TramiteEspecifico#agregarPasoEspecifico(dominio.PasoEspecifico)
      * @see BaseDatos#cerrarConexion()
-     * @see BaseDatos#realizarConsulta(java.lang.String) 
-     * @see BaseDatos#numRegistrosMeta_espec() 
-     * 
+     * @see BaseDatos#realizarConsulta(java.lang.String)
+     * @see BaseDatos#numRegistrosMeta_espec()
+     *
      * @throws BaseDatosException
      * @throws TramiteException
      * @throws SQLException
@@ -246,7 +248,7 @@ public class ListaTramites {
                         for (int i = k; i < campos.size(); i++) {
                             valoresDefecto.add(0, new String[1]);
                             valoresDefecto.get(0)[0] = campos.get(i).getValorDefecto();
-                            tramiteEspecifico.agregarCampo(campos.get(i), valoresDefecto.get(i));
+                            tramiteEspecifico.agregarCampo(campos.get(i), valoresDefecto.get(0));
                         }
                     }
                 }
@@ -265,10 +267,16 @@ public class ListaTramites {
                         + " where pasos_especificos.num_paso= meta_paso.num_paso"
                         + " and idRegistro_tramiteEsp = " + tramiteEspecifico.getIdTramite();
                 ResultSet resultSet = bd.realizarConsulta(consultaPasosEsp);
+                int i = 0;
                 while (resultSet.next()) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                    pasoEspecifico.setNombrePaso(resultSet.getString("nombre_paso"));
-                    boolean realizado= Boolean.parseBoolean(resultSet.getString("realizado"));
+                    if (resultSet.getInt("repeticion") >= 1) {
+                        String nombrePaso = resultSet.getInt("repeticion") == 1 ? resultSet.getString("nombre_paso") : resultSet.getString("nombre_paso") + " " + i;
+                        pasoEspecifico.setNombrePaso(nombrePaso);
+                    } else {
+                        pasoEspecifico.setNombrePaso(resultSet.getString("nombre_paso"));
+                    }
+                    boolean realizado = Boolean.parseBoolean(resultSet.getString("realizado"));
                     pasoEspecifico.setRealizado(realizado);
                     try {
                         //Date d = new Date(resultSet.getString("fecha_realizacion"));
@@ -282,16 +290,21 @@ public class ListaTramites {
                     boolean obligatorio = Boolean.parseBoolean(resultSet.getString("obligatorio"));
                     boolean con_fecha_limite = Boolean.parseBoolean(resultSet.getString("con_fecha_limite"));
                     if (obligatorio && con_fecha_limite) {
-                            //Date d = new Date(resultSet.getString("fecha_limite"));
-                            pasoEspecifico.setFechaLimite(PanelCampo.obtenerFecha(resultSet.getString("fecha_limite")));
+                        //Date d = new Date(resultSet.getString("fecha_limite"));
+                        pasoEspecifico.setFechaLimite(PanelCampo.obtenerFecha(resultSet.getString("fecha_limite")));
                     } else {
                         pasoEspecifico.setFechaLimite(null);
                     }
-
+                    //Se añadió esto para poder distinguir cuando un paso especifico tiene repeticion
+                    int repeticiones = resultSet.getInt("repeticion");
+                    if (repeticiones == 1 || repeticiones == 0) {
+                        i = 1;
+                    } else {
+                        i++;
+                    }
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
                 agregarTramiteEspecifico(tramiteEspecifico);
-
             }
             bd.cerrarConexion();
 
@@ -379,7 +392,6 @@ public class ListaTramites {
             }
         }
     }
-
 
     public void cerrarArchivo() {
         inicializar();

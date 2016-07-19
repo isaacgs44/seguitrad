@@ -305,11 +305,13 @@ public class PanelDatosGenerales extends JPanel implements ActionListener {
 			cadenaEstado = modeloListaEstados.getElementAt(posicion);
 			modeloListaEstados.remove(posicion);
 			modeloListaEstados.addElement(cadenaEstado);
+			listaEstados.setSelectedIndex(modeloListaEstados.getSize() - 1);
 		} else {
 			// mover el estado una posición arriba
 			cadenaEstado = modeloListaEstados.getElementAt(posicion);
 			modeloListaEstados.remove(posicion);
 			modeloListaEstados.insertElementAt(cadenaEstado, posicion - 1);
+			listaEstados.setSelectedIndex(posicion - 1);
 		}
 	}
 
@@ -326,11 +328,13 @@ public class PanelDatosGenerales extends JPanel implements ActionListener {
 			cadenaEstado = modeloListaEstados.getElementAt(posicion);
 			 modeloListaEstados.remove(posicion);
 			 modeloListaEstados.insertElementAt(cadenaEstado, 0);
+			 listaEstados.setSelectedIndex(0);
 		} else {
 			// mover el estado una posición abajo
 			cadenaEstado = modeloListaEstados.getElementAt(posicion);
 	        modeloListaEstados.remove(posicion);
 	        modeloListaEstados.insertElementAt(cadenaEstado, posicion + 1);
+	        listaEstados.setSelectedIndex(posicion + 1);
 		}
 	}
 
