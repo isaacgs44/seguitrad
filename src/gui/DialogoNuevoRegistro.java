@@ -377,7 +377,20 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
                         pasoEspecifico.setFechaLimite(null);
                     }
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
-                } 
+                }
+                if(p.getRepeticion()==0){
+                    PasoEspecifico pasoEspecifico = new PasoEspecifico();
+                    String nombre_paso = "*" + p.getNombrePaso();
+                    pasoEspecifico.setNombrePaso(nombre_paso);
+                    pasoEspecifico.setNumPaso(p.getNumPaso());
+                    pasoEspecifico.setRepeticion(p.getRepeticion());
+                    pasoEspecifico.setRealizado(false);
+                    pasoEspecifico.setFechaRealizacion(null);
+                    pasoEspecifico.setDocumento("");
+                    pasoEspecifico.setFechaLimite(null);
+                    tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
+                }
+               
         }
         tramiteEspecifico.setIdTramite(idTramite);
         ventanaPrincipal.getLista().agregarTramiteEspecifico(tramiteEspecifico);

@@ -25,12 +25,19 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.BorderUIResource;
 import lib.UtileriasArchivo;
 
 public class DialogoSeguimiento extends JDialog implements ActionListener {
@@ -67,6 +74,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     private ArrayList<PasoEspecifico> pasosModificados;
     private PasoEspecifico paso;
     private JLabel etiquetaNombre;
+    private JPanel panelContenedor;
+    private JList lista;
 
     public DialogoSeguimiento(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
         super(ventanaPrincipal, "Seguimiento", true);
@@ -74,6 +83,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         this.ventanaPrincipal = ventanaPrincipal;
         this.tramiteEspecifico = tramiteEspecifico;
         pasosModificados = new ArrayList<>();
+        paso = new PasoEspecifico();
         for (PasoEspecifico p : tramiteEspecifico.getPasosEspecificos()) {
             PasoEspecifico p2 = new PasoEspecifico();
             p2.setNombrePaso(p.getNombrePaso());
@@ -201,11 +211,60 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         descripcion = new JList<String>(modeloDescripcion);
         descripcion.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         add(descripcion);
+        panelContenedor = new JPanel();
+        int numPasos = 0;
+        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
+        panelContenedor.setBounds(115, 480, 250, 140);
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                numPasos++;
+            }
+        }
+        String todo_pasos[] = new String[numPasos];
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        lista = new JList(todo_pasos);
+        lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        lista.setBackground(Color.decode("#E5E5E5"));
+        lista.setBorder(new BorderUIResource.LineBorderUIResource(Color.decode("#E5E5E5")));
+        lista.setBounds(115, 480, 250, 140);
+        lista.addMouseListener(new MouseListener() {
 
-        paso = new PasoEspecifico(pasosModificados);
-        scrollDescripcion = new JScrollPane(paso);
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(e.getClickCount() ==2){
+                    editarBoton.doClick();
+                }
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+        lista.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    ocultarElementos();
+                }
+            }
+        });
+        panelContenedor.add(lista);
+        scrollDescripcion = new JScrollPane(panelContenedor);
         scrollDescripcion.setBounds(80, 470, 250, 150);
-        scrollDescripcion.setAutoscrolls(true);
         add(scrollDescripcion);
 
         editarBoton = new JButton("Editar");
@@ -294,6 +353,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         datoEspecifico.setEnabled(false);
         carpetaBoton.setEnabled(false);
         verPlantillaBoton.setEnabled(false);
+        datoEspecifico.setText("");
+        etiquetaNombre.setText("Nombre: ");
     }
 
     public void pasoRealizado(int indice) {
@@ -338,12 +399,12 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             dispose();
         }
         if (e.getSource() == editarBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int[] selectedIndices = lista.getSelectedIndices();
             if (selectedIndices.length != 0) {
-                if(true){
+                if (true) {
                     //Aqui hare la seriación
                 }
-                if (false) {
+                if (true) {
                     mostrarElementos();
                     etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0], pasosModificados));
                     datoEspecifico.setText("");
@@ -356,7 +417,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         }
         if (e.getSource() == agregarBoton) {
             try {
-                int[] selectedIndices = paso.getLista().getSelectedIndices();
+                int[] selectedIndices = lista.getSelectedIndices();
                 int posicion = selectedIndices[0];
                 if (!"".equals(datoEspecifico.getText()) && datoEspecifico.getText() != null) {
                     guardarDocumentoEspecifico(datoEspecifico.getText(), posicion);
@@ -369,7 +430,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             }
         }
         if (e.getSource() == verPlantillaBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int[] selectedIndices = lista.getSelectedIndices();
             int posicion = selectedIndices[0];
             if (obtenerPlantilla(posicion).equals("Sin plantilla")) {
                 verPlantillaBoton.setEnabled(false);
@@ -378,7 +439,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             }
         }
         if (e.getSource() == carpetaBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int[] selectedIndices = lista.getSelectedIndices();
             int posicion = selectedIndices[0];
             if (isconDocumento(posicion)) {
                 datoEspecifico.setEditable(true);
@@ -391,6 +452,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             if (panelPasoRealizado.indiceCheck() != -1) {
                 eliminarPasoRealizado(panelPasoRealizado.indiceCheck());
                 resetPanel();
+                ocultarElementos();
             }
         }
 
@@ -630,10 +692,63 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         remove(scroll); // eliminamos paneles
         remove(scrollDescripcion);
 
-        paso = new PasoEspecifico(pasosModificados); // creamos panel con nuevos componentes
-        scrollDescripcion = new JScrollPane(paso);
+        panelContenedor = new JPanel();
+        int numPasos = 0;
+        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
+        panelContenedor.setBounds(115, 480, 250, 140);
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                numPasos++;
+            }
+        }
+        String todo_pasos[] = new String[numPasos];
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        lista = new JList(todo_pasos);
+        lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        lista.setBackground(Color.decode("#E5E5E5"));
+        lista.setBorder(new BorderUIResource.LineBorderUIResource(Color.decode("#E5E5E5")));
+        lista.setBounds(115, 480, 250, 140);
+        lista.addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(e.getClickCount() ==2){
+                    editarBoton.doClick();
+                }
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+        lista.addListSelectionListener(new ListSelectionListener() {
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    ocultarElementos();
+                }
+            }
+        });
+        panelContenedor.add(lista);
+        scrollDescripcion = new JScrollPane(panelContenedor);
         scrollDescripcion.setBounds(80, 470, 250, 150);
-        scrollDescripcion.setAutoscrolls(true);
+        add(scrollDescripcion);
+        
         panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico, pasosModificados, ventanaPrincipal);
         scroll = new JScrollPane(panelPasoRealizado);
         scroll.setBounds(50, 220, 700, 200);

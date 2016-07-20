@@ -2,18 +2,11 @@ package dominio;
 
 import java.util.Date;
 import excepcion.TramiteEspecificoException;
-import gui.VentanaPrincipal;
-import java.awt.Color;
-import java.awt.GridLayout;
 import java.util.ArrayList;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.EventListenerList;
-import javax.swing.plaf.BorderUIResource;
 
-public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico> {
+public class PasoEspecifico implements Comparable<PasoEspecifico>{
 
     private JPanel panelContenedor;
     private JList lista;
@@ -26,31 +19,6 @@ public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico>
     private int numPaso;
 
     public PasoEspecifico(ArrayList<PasoEspecifico> pasoEspecificos) {
-        //Escribir funcionalidad
-        //pasoEspecificos = new ArrayList<>();
-        panelContenedor = new JPanel();
-        int numPasos = 0;
-        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
-        panelContenedor.setBounds(115, 480, 250, 140);
-        for (PasoEspecifico pe : pasoEspecificos) {
-            if (!pe.isRealizado()) {
-                numPasos++;
-            }
-        }
-        String todo_pasos[] = new String[numPasos];
-        int i = 0;
-        for (PasoEspecifico pe : pasoEspecificos) {
-            if (!pe.isRealizado()) {
-                todo_pasos[i] = pe.getNombrePaso();
-                i++;
-            }
-        }
-        lista = new JList(todo_pasos);
-        lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        lista.setBackground(Color.decode("#E5E5E5"));
-        lista.setBorder(new BorderUIResource.LineBorderUIResource(Color.decode("#E5E5E5")));
-        panelContenedor.add(lista);
-        this.add(panelContenedor);
     }
 
     public PasoEspecifico() {
@@ -183,7 +151,7 @@ public class PasoEspecifico extends JPanel implements Comparable<PasoEspecifico>
     }
 
     public JList getLista() {
-        return lista;
+        return this.lista;
     }
 
     public void setLista(JList lista) {
