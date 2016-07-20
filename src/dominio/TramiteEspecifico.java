@@ -63,6 +63,16 @@ public class TramiteEspecifico {
         valores.add(valor);
     }
 
+	//ADD
+	public void modificarCampo(Campo campo, String[] valor) {
+		int posicion = buscarCampo(campo.getNombreCampo());
+		if (posicion != -1) {
+			valores.set(posicion, valor);
+		} else {
+			agregarCampo(campo, valor);
+		}
+	}
+	
     public void quitarCampo(int posicion) {
         campos.remove(posicion);
         valores.remove(posicion);
@@ -104,7 +114,7 @@ public class TramiteEspecifico {
     public boolean validarTramiteEspecifico() throws TramiteEspecificoException {
         return false;
     }
-
+    
     public void insertarTramiteEspecifico() throws BaseDatosException, SQLException {
         System.out.println("Llega a la clase Tramite Especifico pero no almacena");
         //insertamos campos por default

@@ -43,7 +43,7 @@ import java.util.Date;
  * trámite. Dos botones; uno para aceptar (se guarda el cambio del trámite
  * específico) y uno para cancelar (no se guarda ningún cambio).
  * </p>
- * 
+ *
  * @author jesus
  *
  */
@@ -55,7 +55,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      */
     private JButton aceptarBoton;
     /**
-     *  Cierra la ventana y no se guarda ningún cambio.
+     * Cierra la ventana y no se guarda ningún cambio.
      */
     private JButton cancelarBoton;
     /**
@@ -81,7 +81,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      */
     private PanelDetallesPaso panelDetallesPaso;
     /**
-     *  Scroll que sirve para desplazar el panel donde se muestran los pasos.
+     * Scroll que sirve para desplazar el panel donde se muestran los pasos.
      */
     private JScrollPane scrollDetallesPaso;
     /**
@@ -102,10 +102,11 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      * Se crean los objetos <code>PanelDetallesPasos</code> y
      * <code>PanelCampo</code>, estos muestran los campos y pasos de un trámite.
      * </p>
-     * 
-     * @param ventanaPrincipal	Referencia para obtener el trámite que se está utilizando.
+     *
+     * @param ventanaPrincipal	Referencia para obtener el trámite que se está
+     * utilizando.
      * @param tramiteEspecifico	Trámite específico seleccionado.
-     * 
+     *
      * @see PanelDetallesPaso
      * @see PanelCampo
      */
@@ -164,10 +165,9 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      * presiona el botón aceptar, se guardan las modificaciones que se hacen al
      * trámite especifico. Si se presiona el botón cancelar, se muestra un
      * mensaje de confirmación y no se guarda ningún cambio.
-     * 
-     * 
-     * @param e
-     *            Indica qué evento se va a realizar.
+     *
+     *
+     * @param e Indica qué evento se va a realizar.
      * @see #aceptar()
      * @see #cancelar()
      */
@@ -178,7 +178,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
             dispose();
         } else if (e.getSource().equals(cancelarBoton)) {
             cancelar();
-          
+
         }
     }
 
@@ -186,7 +186,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      * Guarda los cambios que se hacen al trámite especifico, si se validan
      * correctamente los valores. Si la validación de los datos no es correcta,
      * se muestra un mensaje de error.
-     * 
+     *
      * @see #validar()
      * @see #guardarValores()
      */
@@ -197,7 +197,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
             JOptionPane.showMessageDialog(this,
                     "Se han guardado correctamente los valores",
                     "Éxito al guardar", JOptionPane.INFORMATION_MESSAGE);
-           
+
         } catch (TramiteEspecificoException err) {
             JOptionPane.showMessageDialog(this, err.getMessage(),
                     err.getTitulo(), JOptionPane.ERROR_MESSAGE);
@@ -227,10 +227,9 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      * opciones múltiples u opciones excluyentes verifica que tenga seleccionado
      * algún valor.
      * </p>
-     * 
-     * @throws TramiteEspecificoException
-     *             Excepción que es lanzada si alguno de los campos es
-     *             obligatorio y no se asigna ningún valor.
+     *
+     * @throws TramiteEspecificoException Excepción que es lanzada si alguno de
+     * los campos es obligatorio y no se asigna ningún valor.
      */
     private void validar() throws TramiteEspecificoException {
         ArrayList<Campo> campos = tramite.getCampos();
@@ -341,10 +340,6 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
                     lista = (JList<?>) componentes.get(index);
                     modelo = lista.getModel();
                     int[] indices = lista.getSelectedIndices();
-//				valores = new String[indices.length];
-//				for (int i = 0; i < indices.length; i++) {
-//					valores[i] = (String) modelo.getElementAt(indices[i]);
-//				}
                     valores = new String[1];
                     valores[0] = "";
                     for (int i = 0; i < indices.length; i++) {
@@ -361,7 +356,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
                     valores[0] = texto.getText();
                     break;
             }
-            tramiteEspecifico.agregarCampo(c, valores);
+            tramiteEspecifico.modificarCampo(c, valores);//REPLACE
             index++;
         }
         index = 0;

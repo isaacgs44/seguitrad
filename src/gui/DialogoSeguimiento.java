@@ -340,10 +340,15 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         if (e.getSource() == editarBoton) {
             int[] selectedIndices = paso.getLista().getSelectedIndices();
             if (selectedIndices.length != 0) {
-                mostrarElementos();
-                etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0], pasosModificados));
-                datoEspecifico.setText("");
-                datoEspecifico.setEditable(false);
+                if(true){
+                    //Aqui hare la seriación
+                }
+                if (false) {
+                    mostrarElementos();
+                    etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0], pasosModificados));
+                    datoEspecifico.setText("");
+                    datoEspecifico.setEditable(false);
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "Debe seleccionar un paso especifico",
                         "Error", JOptionPane.ERROR_MESSAGE);
@@ -353,7 +358,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             try {
                 int[] selectedIndices = paso.getLista().getSelectedIndices();
                 int posicion = selectedIndices[0];
-                if(!"".equals(datoEspecifico.getText()) && datoEspecifico.getText()!=null){
+                if (!"".equals(datoEspecifico.getText()) && datoEspecifico.getText() != null) {
                     guardarDocumentoEspecifico(datoEspecifico.getText(), posicion);
                 }
                 pasoRealizado(posicion);
@@ -406,34 +411,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             }
         }
         if (e.getSource() == cargarDocBoton) {
-            if (panelPasoRealizado.indiceCheck() != -1 && !panelPasoRealizado.obtenerNombreBotonDocumento(panelPasoRealizado.indiceCheck()).equals("Sin documento")) {
-                int indiceS = panelPasoRealizado.indiceCheck();
-                if (getPasoSeleccionadoRealizado(indiceS).getDocumento() == null || "".equals(getPasoSeleccionadoRealizado(indiceS).getDocumento())) {
-                    System.out.println("Indice seleccionado: " + panelPasoRealizado.indiceCheck());
-                    FileDialog fd = new FileDialog(new Frame(), "Seleccionar documento ", FileDialog.LOAD);
-                    fd.setDirectory(System.getProperty("user.dir"));
-                    fd.setFile("*.pdf; *.doc; *.docx");
-                    fd.setVisible(true);
-                    if (fd.getFile() != null) {
-                        JOptionPane.showMessageDialog(this, "El sistema comenzará a cargar el documento."
-                                + "\n Es necesario esperar un momento",
-                                "Aviso", JOptionPane.INFORMATION_MESSAGE);
-                        String ruta = fd.getDirectory() + fd.getFile();
-                        String extension = ruta.substring(ruta.lastIndexOf('.'));
-                        String tramitante = tramiteEspecifico.obtenerValores(0)[0];
-                        String rutaNueva;
-                        rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + getPasoSeleccionadoRealizado(indiceS).getNombrePaso() + extension;
-                        UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
-                        getPasoSeleccionadoRealizado(indiceS).setDocumento(rutaNueva);
-                        JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
-                                "Aviso", JOptionPane.INFORMATION_MESSAGE);
-                        resetPanel();
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Ya existe documento",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
+            cargarDocumento();
         }
 
         if (e.getSource() == quitarDocBoton) {
@@ -536,6 +514,62 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             datoEspecifico.setText(fd.getDirectory() + fd.getFile());
         }
         datoEspecifico.setEnabled(false);
+    }
+
+    private void cargarDocumento() {
+        if (panelPasoRealizado.indiceCheck() != -1 && !panelPasoRealizado.obtenerNombreBotonDocumento(panelPasoRealizado.indiceCheck()).equals("Sin documento")) {
+            int indiceS = panelPasoRealizado.indiceCheck();
+            if (getPasoSeleccionadoRealizado(indiceS).getDocumento() == null || "".equals(getPasoSeleccionadoRealizado(indiceS).getDocumento())) {
+                System.out.println("Indice seleccionado: " + panelPasoRealizado.indiceCheck());
+                FileDialog fd = new FileDialog(new Frame(), "Seleccionar documento ", FileDialog.LOAD);
+                fd.setDirectory(System.getProperty("user.dir"));
+                fd.setFile("*.pdf; *.doc; *.docx");
+                fd.setVisible(true);
+                if (fd.getFile() != null) {
+                    JOptionPane.showMessageDialog(this, "El sistema comenzará a cargar el documento."
+                            + "\n Es necesario esperar un momento",
+                            "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                    String ruta = fd.getDirectory() + fd.getFile();
+                    String extension = ruta.substring(ruta.lastIndexOf('.'));
+                    String tramitante = tramiteEspecifico.obtenerValores(0)[0];
+                    String rutaNueva;
+                    rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + getPasoSeleccionadoRealizado(indiceS).getNombrePaso() + extension;
+                    UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
+                    getPasoSeleccionadoRealizado(indiceS).setDocumento(rutaNueva);
+                    JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
+                            "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                    resetPanel();
+                }
+            } else {
+                int respuesta = JOptionPane.showConfirmDialog(this,
+                        "¿Ya existe un documento, ¿Desea Reemplazarlo?", "Advertencia",
+                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (respuesta == JOptionPane.YES_OPTION) {
+                    System.out.println("Indice seleccionado: " + panelPasoRealizado.indiceCheck());
+                    FileDialog fd = new FileDialog(new Frame(), "Seleccionar documento ", FileDialog.LOAD);
+                    fd.setDirectory(System.getProperty("user.dir"));
+                    fd.setFile("*.pdf; *.doc; *.docx");
+                    fd.setVisible(true);
+                    if (fd.getFile() != null) {
+                        JOptionPane.showMessageDialog(this, "El sistema comenzará a cargar el documento."
+                                + "\n Es necesario esperar un momento",
+                                "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                        String ruta = fd.getDirectory() + fd.getFile();
+                        String extension = ruta.substring(ruta.lastIndexOf('.'));
+                        String tramitante = tramiteEspecifico.obtenerValores(0)[0];
+                        String rutaNueva;
+                        rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + getPasoSeleccionadoRealizado(indiceS).getNombrePaso() + extension;
+                        UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
+                        getPasoSeleccionadoRealizado(indiceS).setDocumento(rutaNueva);
+                        JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
+                                "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                        resetPanel();
+                    } else if (respuesta == JOptionPane.NO_OPTION) {
+                        dispose();
+                    }
+                }
+            }
+        }
     }
 
     private void guardarDocumentoEspecifico(String ruta, int indice) {
