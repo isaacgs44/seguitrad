@@ -360,38 +360,6 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
         }
         index = 0;
         for (Paso p : pasos) {
-            for (int i = 1; i <= p.getRepeticion(); i++) {
-                PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                String nombre_paso = p.getRepeticion() == 1 ? p.getNombrePaso() : p.getNombrePaso() + " " + i;
-                pasoEspecifico.setNombrePaso(nombre_paso);
-                pasoEspecifico.setNumPaso(p.getNumPaso());
-                pasoEspecifico.setRepeticion(p.getRepeticion());
-                pasoEspecifico.setRealizado(false);
-                pasoEspecifico.setFechaRealizacion(null);
-                pasoEspecifico.setDocumento("");
-                if (p.isObligatorio() && p.isConFechaLimite()) {
-                    fecha = fechas.get(index);
-                    pasoEspecifico.setFechaLimite(fecha.getDate());
-                    index++;
-                } else {
-                    pasoEspecifico.setFechaLimite(null);
-                }
-                tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
-            }
-            System.out.println("paso : "+p.getNombrePaso()+" repeticion : "+p.getRepeticion());
-            if (p.getRepeticion() == 0) {
-                PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                String nombre_paso = "*" + p.getNombrePaso();
-                pasoEspecifico.setNombrePaso(nombre_paso);
-                pasoEspecifico.setNumPaso(p.getNumPaso());
-                pasoEspecifico.setRepeticion(p.getRepeticion());
-                pasoEspecifico.setRealizado(false);
-                pasoEspecifico.setFechaRealizacion(null);
-                pasoEspecifico.setDocumento("");
-                pasoEspecifico.setFechaLimite(null);
-                tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
-            }
-
                 for (int i = 1; i <= p.getRepeticion(); i++) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
                     String nombre_paso= p.getRepeticion()==1 ? p.getNombrePaso():p.getNombrePaso()+" "+i;
