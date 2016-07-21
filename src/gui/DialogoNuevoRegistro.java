@@ -45,10 +45,10 @@ import java.util.logging.Logger;
  * </p>
  * <p>
  * La ventana cuenta con dos paneles donde se muestran los campos y pasos de un
- * trámite. Dos botones; uno para aceptar (se guarda un nuevo trámite específico)
- * y uno para cancelar (no se guarda ningún cambio).
+ * trámite. Dos botones; uno para aceptar (se guarda un nuevo trámite
+ * específico) y uno para cancelar (no se guarda ningún cambio).
  * </p>
- * 
+ *
  * @author jesus
  *
  */
@@ -60,7 +60,7 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      */
     private JButton aceptarBoton;
     /**
-     *  Cierra la ventana y no se guarda ningún cambio.
+     * Cierra la ventana y no se guarda ningún cambio.
      */
     private JButton cancelarBoton;
     /**
@@ -77,7 +77,7 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      */
     private PanelDetallesPaso panelDetallesPaso;
     /**
-     *  Scroll que sirve para desplazar el panel donde se muestran los pasos.
+     * Scroll que sirve para desplazar el panel donde se muestran los pasos.
      */
     private JScrollPane scrollDetallesPaso;
     /**
@@ -97,9 +97,10 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      * <code>PanelCampo</code>, estos muestran los campos y pasos de un trámite.
      * </p>
      * Se crean los métodos para escuchar los eventos de los botones.
-     * 
-     * @param ventanaPrincipal	Referencia para obtener el trámite que se está utilizando.
-     * 
+     *
+     * @param ventanaPrincipal	Referencia para obtener el trámite que se está
+     * utilizando.
+     *
      * @see PanelCampo
      * @see PanelDetallesPaso
      */
@@ -151,9 +152,9 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      * presiona el botón aceptar se guardan el trámite especifico. Si se
      * presiona el botón cancelar se muestra un mensaje de confirmación y no se
      * guarda ningún cambio.
-     * 
-     * 
-     * @param e		Indica qué evento se va a realizar.
+     *
+     *
+     * @param e	Indica qué evento se va a realizar.
      * @see #aceptar()
      * @see #cancelar()
      */
@@ -176,9 +177,9 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
 
     /**
      * Guarda los valores en un nuevo trámite especifico si la validación de los
-     * datos es correcta. Cierra la ventana.
-     * Si la validación de los datos no es correcta se manda un mensaje de error.
-     * 
+     * datos es correcta. Cierra la ventana. Si la validación de los datos no es
+     * correcta se manda un mensaje de error.
+     *
      * @see #validar()
      * @see #guardarValores()
      */
@@ -219,10 +220,9 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      * opciones múltiples u opciones excluyentes verifica que tenga seleccionado
      * algún valor.
      * </p>
-     * 
-     * @throws TramiteEspecificoException
-     *             Excepción que es lanzada si alguno de los campos es
-     *             obligatorio y no se asigna ningún valor.
+     *
+     * @throws TramiteEspecificoException Excepción que es lanzada si alguno de
+     * los campos es obligatorio y no se asigna ningún valor.
      */
     private void validar() throws TramiteEspecificoException {
         ArrayList<Campo> campos = tramite.getCampos();
@@ -360,28 +360,42 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
         }
         index = 0;
         for (Paso p : pasos) {
-                for (int i = 1; i <= p.getRepeticion(); i++) {
-                    PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                    String nombre_paso= p.getRepeticion()==1 ? p.getNombrePaso():p.getNombrePaso()+" "+i;
-                    pasoEspecifico.setNombrePaso(nombre_paso);
-                    pasoEspecifico.setNumPaso(p.getNumPaso());
-                    pasoEspecifico.setRepeticion(p.getRepeticion());
-                    pasoEspecifico.setRealizado(false);
-                    pasoEspecifico.setFechaRealizacion(null);
-                    pasoEspecifico.setDocumento("");
-                    if (p.isObligatorio() && p.isConFechaLimite()) {
-                        fecha = fechas.get(index);
-                        pasoEspecifico.setFechaLimite(fecha.getDate());
-                        index++;
-                    } else {
-                        pasoEspecifico.setFechaLimite(null);
-                    }
-                    tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
-                } 
+            for (int i = 1; i <= p.getRepeticion(); i++) {
+                PasoEspecifico pasoEspecifico = new PasoEspecifico();
+                String nombre_paso = p.getRepeticion() == 1 ? p.getNombrePaso() : p.getNombrePaso() + " " + i;
+                pasoEspecifico.setNombrePaso(nombre_paso);
+                pasoEspecifico.setNumPaso(p.getNumPaso());
+                pasoEspecifico.setRepeticion(p.getRepeticion());
+                pasoEspecifico.setRealizado(false);
+                pasoEspecifico.setFechaRealizacion(null);
+                pasoEspecifico.setDocumento("");
+                if (p.isObligatorio() && p.isConFechaLimite()) {
+                    fecha = fechas.get(index);
+                    pasoEspecifico.setFechaLimite(fecha.getDate());
+                    index++;
+                } else {
+                    pasoEspecifico.setFechaLimite(null);
+                }
+                tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
+            }
+            System.out.println("paso : "+p.getNombrePaso()+" repeticion : "+p.getRepeticion());
+            if (p.getRepeticion() == 0) {
+                PasoEspecifico pasoEspecifico = new PasoEspecifico();
+                String nombre_paso = "*" + p.getNombrePaso();
+                pasoEspecifico.setNombrePaso(nombre_paso);
+                pasoEspecifico.setNumPaso(p.getNumPaso());
+                pasoEspecifico.setRepeticion(p.getRepeticion());
+                pasoEspecifico.setRealizado(false);
+                pasoEspecifico.setFechaRealizacion(null);
+                pasoEspecifico.setDocumento("");
+                pasoEspecifico.setFechaLimite(null);
+                tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
+            }
+
         }
         tramiteEspecifico.setIdTramite(idTramite);
         ventanaPrincipal.getLista().agregarTramiteEspecifico(tramiteEspecifico);
-       
+
         //insertar el tramite especifico en BD
         tramiteEspecifico.insertarTramiteEspecifico();
     }

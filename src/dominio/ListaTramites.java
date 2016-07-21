@@ -302,6 +302,7 @@ public class ListaTramites {
                     } else {
                         i++;
                     }
+                    pasoEspecifico.setRepeticion(repeticiones);
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
                 agregarTramiteEspecifico(tramiteEspecifico);

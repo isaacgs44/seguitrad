@@ -196,6 +196,11 @@ public class PanelCampo extends JPanel {
                             }
                         }
                     }
+				//ADD
+				if (c.getNombreCampo().equalsIgnoreCase("Estado")) {
+					nuevoComboBox.setEnabled(false);
+				}
+				//Fin ADD
                     panelContenedor.add(nuevoComboBox);
                     componentes.add(nuevoComboBox);
                     this.add(panelContenedor);

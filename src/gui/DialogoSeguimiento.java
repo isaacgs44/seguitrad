@@ -25,12 +25,19 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.BorderUIResource;
 import lib.UtileriasArchivo;
 
 public class DialogoSeguimiento extends JDialog implements ActionListener {
@@ -67,6 +74,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     private ArrayList<PasoEspecifico> pasosModificados;
     private PasoEspecifico paso;
     private JLabel etiquetaNombre;
+    private JPanel panelContenedor;
+    private JList lista;
 
     public DialogoSeguimiento(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
         super(ventanaPrincipal, "Seguimiento", true);
@@ -74,6 +83,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         this.ventanaPrincipal = ventanaPrincipal;
         this.tramiteEspecifico = tramiteEspecifico;
         pasosModificados = new ArrayList<>();
+        paso = new PasoEspecifico();
         for (PasoEspecifico p : tramiteEspecifico.getPasosEspecificos()) {
             PasoEspecifico p2 = new PasoEspecifico();
             p2.setNombrePaso(p.getNombrePaso());
@@ -83,7 +93,11 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             p2.setFechaRealizacion(p.getFechaRealizacion());
             p2.setRealizado(p.isRealizado());
             p2.setRepeticion(p.getRepeticion());
+            System.out.println("Repeticiones antes de almacenar en la copia = "+p.getRepeticion());
             pasosModificados.add(p2);
+        }
+        for(PasoEspecifico pasoEspecifico: tramiteEspecifico.getPasosEspecificos()){
+            System.out.println(pasoEspecifico.getRepeticion());
         }
         initComponents(tramiteEspecifico);
     }
@@ -201,11 +215,64 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         descripcion = new JList<String>(modeloDescripcion);
         descripcion.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         add(descripcion);
+        panelContenedor = new JPanel();
+        int numPasos = 0;
+        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
+        panelContenedor.setBounds(115, 480, 250, 140);
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                numPasos++;
+            }
+        }
+        String todo_pasos[] = new String[numPasos];
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        lista = new JList(todo_pasos);
+        lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        lista.setBackground(new Color(238, 238, 238));
+        lista.setBorder(new BorderUIResource.LineBorderUIResource(new Color(238, 238, 238)));
+        lista.setBounds(115, 480, 250, 140);
+        lista.addMouseListener(new MouseListener() {
 
-        paso = new PasoEspecifico(pasosModificados);
-        scrollDescripcion = new JScrollPane(paso);
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarBoton.doClick();
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+        lista.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    ocultarElementos();
+                }
+            }
+        });
+        panelContenedor.add(lista);
+        scrollDescripcion = new JScrollPane(panelContenedor);
         scrollDescripcion.setBounds(80, 470, 250, 150);
-        scrollDescripcion.setAutoscrolls(true);
         add(scrollDescripcion);
 
         editarBoton = new JButton("Editar");
@@ -262,7 +329,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         cancelarBoton.setIcon(new ImageIcon(getClass().getResource("/imagenes/cancelar.png")));
         add(cancelarBoton);
 
-        panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico, pasosModificados, ventanaPrincipal);
+        panelPasoRealizado = new PanelPasoRealizado(pasosModificados, ventanaPrincipal);
         scroll = new JScrollPane(panelPasoRealizado);
         scroll.setBounds(50, 220, 700, 200);
         add(scroll);
@@ -294,15 +361,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         datoEspecifico.setEnabled(false);
         carpetaBoton.setEnabled(false);
         verPlantillaBoton.setEnabled(false);
-    }
-
-    public void pasoRealizado(int indice) {
-        DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
-        Date d = new Date(fechaChooser.getDate().getTime());
-        formato.format(d);
-        PasoEspecifico p = new PasoEspecifico(pasosModificados);
-        p.realizarPaso(d, true, datoEspecifico.getText(), indice, pasosModificados);
-        ocultarElementos();
+        datoEspecifico.setText("");
+        etiquetaNombre.setText("Nombre: ");
     }
 
     public void verPlantilla(String ruta) {
@@ -338,12 +398,13 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             dispose();
         }
         if (e.getSource() == editarBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int[] selectedIndices = lista.getSelectedIndices();
             if (selectedIndices.length != 0) {
-                if(true){
-                    //Aqui hare la seriación
+                if (!"puedeRealizarse".equals(getSecuenciaPasos(selectedIndices[0])) && getSecuenciaPasos(selectedIndices[0]) != null) {
+                    JOptionPane.showMessageDialog(this, "El paso tiene seriacion, antes debe realizar : \n " + getSecuenciaPasos(selectedIndices[0]),
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                if (false) {
+                if (getSecuenciaPasos(selectedIndices[0]).equals("puedeRealizarse")) {
                     mostrarElementos();
                     etiquetaNombre.setText("Nombre : " + paso.nombrePasoSeleccionado(selectedIndices[0], pasosModificados));
                     datoEspecifico.setText("");
@@ -356,12 +417,12 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         }
         if (e.getSource() == agregarBoton) {
             try {
-                int[] selectedIndices = paso.getLista().getSelectedIndices();
+                int[] selectedIndices = lista.getSelectedIndices();
                 int posicion = selectedIndices[0];
                 if (!"".equals(datoEspecifico.getText()) && datoEspecifico.getText() != null) {
                     guardarDocumentoEspecifico(datoEspecifico.getText(), posicion);
                 }
-                pasoRealizado(posicion);
+                realizarPaso(posicion);
                 resetPanel();
             } catch (ArrayIndexOutOfBoundsException Ex) {
                 JOptionPane.showMessageDialog(this, "Debe seleccionar un paso especifico de la lista",
@@ -369,7 +430,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             }
         }
         if (e.getSource() == verPlantillaBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int[] selectedIndices = lista.getSelectedIndices();
             int posicion = selectedIndices[0];
             if (obtenerPlantilla(posicion).equals("Sin plantilla")) {
                 verPlantillaBoton.setEnabled(false);
@@ -378,7 +439,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             }
         }
         if (e.getSource() == carpetaBoton) {
-            int[] selectedIndices = paso.getLista().getSelectedIndices();
+            int[] selectedIndices = lista.getSelectedIndices();
             int posicion = selectedIndices[0];
             if (isconDocumento(posicion)) {
                 datoEspecifico.setEditable(true);
@@ -391,6 +452,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             if (panelPasoRealizado.indiceCheck() != -1) {
                 eliminarPasoRealizado(panelPasoRealizado.indiceCheck());
                 resetPanel();
+                ocultarElementos();
             }
         }
 
@@ -434,14 +496,11 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
     }
 
     public void eliminarPasoRealizado(int indice) {
-        int i = 0;
-        for (PasoEspecifico pe : pasosModificados) {
-            if (pe.isRealizado()) {
-                if (i == indice) {
-                    pe.setRealizado(false);
-                }
-                i++;
-            }
+        PasoEspecifico pEliminar = getPasoSeleccionadoRealizado(indice);
+        if (pEliminar.getRepeticion() != 0) {
+            pEliminar.setRealizado(false);
+        } else {
+            pasosModificados.remove(pEliminar);
         }
     }
 
@@ -630,14 +689,71 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         remove(scroll); // eliminamos paneles
         remove(scrollDescripcion);
 
-        paso = new PasoEspecifico(pasosModificados); // creamos panel con nuevos componentes
-        scrollDescripcion = new JScrollPane(paso);
+        panelContenedor = new JPanel();
+        int numPasos = 0;
+        panelContenedor.setLayout(new GridLayout(numPasos, 2, 3, 3));
+        panelContenedor.setBounds(115, 480, 250, 140);
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                numPasos++;
+            }
+        }
+        String todo_pasos[] = new String[numPasos];
+        int i = 0;
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                todo_pasos[i] = pe.getNombrePaso();
+                i++;
+            }
+        }
+        lista = new JList(todo_pasos);
+        lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        lista.setBackground(new Color(238, 238, 238));
+        lista.setBorder(new BorderUIResource.LineBorderUIResource(new Color(238, 238, 238)));
+        lista.setBounds(115, 480, 250, 140);
+        lista.addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarBoton.doClick();
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+        lista.addListSelectionListener(new ListSelectionListener() {
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    ocultarElementos();
+                }
+            }
+        });
+        panelContenedor.add(lista);
+        scrollDescripcion = new JScrollPane(panelContenedor);
         scrollDescripcion.setBounds(80, 470, 250, 150);
-        scrollDescripcion.setAutoscrolls(true);
-        panelPasoRealizado = new PanelPasoRealizado(tramiteEspecifico, pasosModificados, ventanaPrincipal);
+        add(scrollDescripcion);
+
+        panelPasoRealizado = new PanelPasoRealizado(pasosModificados, ventanaPrincipal);
         scroll = new JScrollPane(panelPasoRealizado);
         scroll.setBounds(50, 220, 700, 200);
-        add(scroll); //aÃ±adimos los nuevos paneles
+        add(scroll); //aÃƒÂ±adimos los nuevos paneles
         add(scrollDescripcion);
 
         scroll.revalidate(); // restablece panel basado en la nueva lista de componentes
@@ -646,4 +762,102 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         scroll.repaint();   // pinta el panel
         scrollDescripcion.repaint();
     }
+
+    private String getSecuenciaPasos(int indice) {
+        String secuencia = null;
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        String nombrePasos[] = new String[ventanaPrincipal.getLista().getTramite().getPasos().size()];
+        for (Paso p : ventanaPrincipal.getLista().getTramite().getPasos()) {
+            nombrePasos[i] = p.getNombrePaso();
+            i++;
+        }
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                j++;
+            }
+        }
+        String nombrePasosSinRealizar[] = new String[j];
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                nombrePasosSinRealizar[k] = pe.getNombrePaso();
+                k++;
+            }
+        }
+
+        for (PasoEspecifico pe : pasosModificados) {
+            if (!pe.isRealizado()) {
+                for (String nombrePaso : nombrePasos) {
+                    if (pe.getNombrePaso().contains(nombrePaso) && nombrePasosSinRealizar[indice].equals(pe.getNombrePaso())) {
+                        for (Paso p : ventanaPrincipal.getLista().getTramite().getPasos()) {
+                            if (p.getSecuencia() != null && pe.getNombrePaso().contains(p.getNombrePaso())
+                                    && pe.getNombrePaso().contains(nombrePasosSinRealizar[indice])) {
+                                String pasoAnterior = p.getSecuencia().getNombrePaso();
+                                for (PasoEspecifico pe1 : pasosModificados) {
+                                    if (pe1.getNombrePaso().contains(pasoAnterior)) {
+                                        if (pe1.isRealizado()) {
+                                            secuencia = "puedeRealizarse";
+                                            if (pe.getNombrePaso().contains(p.getNombrePaso()) && p.isConCambioEstado()) {
+                                                System.out.println("Cambiar el Estado del tramite " + p.getEstado());
+                                                int posicion = tramiteEspecifico.buscarCampo("Estado");
+                                                String[] val = new String[1];
+                                                val[0] = p.getEstado();
+                                                System.out.println("campo: " + tramiteEspecifico.obtenerCampo(posicion).getNombreCampo());
+                                                System.out.println("posicion: " + posicion);
+                                                tramiteEspecifico.modificarCampo(tramiteEspecifico.obtenerCampo(posicion), val);
+                                            }
+                                        }
+                                        if (pe1.isRealizado() == false) {
+                                            secuencia = pasoAnterior;
+                                        }
+                                    }
+                                }
+                            }
+                            if (p.getSecuencia() == null && pe.getNombrePaso().contains(p.getNombrePaso()) && pe.getNombrePaso().contains(nombrePasosSinRealizar[indice])) {
+                                secuencia = "puedeRealizarse";
+                                if (pe.getNombrePaso().contains(p.getNombrePaso()) && p.isConCambioEstado()) {
+                                    System.out.println("Cambiar el Estado del tramite " + p.getEstado());
+                                    int posicion = tramiteEspecifico.buscarCampo("Estado");
+                                    String[] val = new String[1];
+                                    val[0] = p.getEstado();
+                                    System.out.println("campo: " + tramiteEspecifico.obtenerCampo(posicion).getNombreCampo());
+                                    System.out.println("posicion: " + posicion);
+                                    tramiteEspecifico.modificarCampo(tramiteEspecifico.obtenerCampo(posicion), val);
+                                    for (String[] s : tramiteEspecifico.getValores()) {
+                                        System.out.println("nod: " + s[0]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return secuencia;
+    }
+
+    public void realizarPaso(int indice) {
+        Date d = new Date(fechaChooser.getDate().getTime());
+        PasoEspecifico pe = getPasoSeleccionadoSinRealizar(indice);
+        System.out.println("Repeticiones del paso "+pe.getNombrePaso()+" Numero de veces "+pe.getRepeticion());
+        if (pe.getRepeticion() > 0) {
+            pe.setRealizado(true);
+            pe.setFechaRealizacion(d);
+            pe.setDocumento(datoEspecifico.getText());
+        }
+        if (pe.getRepeticion() == 0) {
+            PasoEspecifico pNuevo = new PasoEspecifico();
+            pNuevo.setNombrePaso(pe.getNombrePaso());
+            pNuevo.setNumPaso(pe.getNumPaso());
+            pNuevo.setRealizado(true);
+            pNuevo.setDocumento(datoEspecifico.getText());
+            pNuevo.setFechaRealizacion(d);
+            pNuevo.setFechaLimite(null);
+            pNuevo.setRepeticion(0);
+            pasosModificados.add(pNuevo);
+        }
+        ocultarElementos();
+    }
+
 }

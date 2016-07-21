@@ -33,7 +33,6 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
     private JButton[] mostrarDocButon;
     private JButton[] verPlantillaButon;
     private ArrayList<PasoEspecifico> pasosRealizados;
-    private TramiteEspecifico tramiteEspecifico;
     private VentanaPrincipal ventanaPrincipal;
     ArrayList<PasoEspecifico> pasosEspecificos;
     String nombreBotonPlantilla[];
@@ -41,11 +40,10 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
     String nombreBotonDocumento[];
     String nombrePaso_Documento[];
 
-    public PanelPasoRealizado(TramiteEspecifico tramiteEspecifico, ArrayList<PasoEspecifico> pasosEspecificos, VentanaPrincipal ventanaPrincipal) {
+    public PanelPasoRealizado(ArrayList<PasoEspecifico> pasosEspecificos, VentanaPrincipal ventanaPrincipal) {
         int i = 0;
         this.pasosEspecificos=pasosEspecificos;
         pasosRealizados = new ArrayList<>();
-        this.tramiteEspecifico = tramiteEspecifico;
         this.ventanaPrincipal = ventanaPrincipal;
         for (PasoEspecifico pe : pasosEspecificos) {
             if (pe.isRealizado()) {
@@ -152,7 +150,7 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
         if (arg0.getActionCommand().equalsIgnoreCase("Ver plantilla")) {
             JButton boton = (JButton) arg0.getSource();
             int valor = Integer.parseInt(boton.getName());
-            verPlantilla(obtenerPlantillaPasosRealizados(valor, tramiteEspecifico));
+            verPlantilla(obtenerPlantillaPasosRealizados(valor));
             //ds.verPlantilla(ds.obtenerPlantillaPasosRealizados(indiceBotonPlantilla(valor), tramiteEspecifico));
         }
     }
@@ -176,23 +174,24 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
         return nombreBoton;
     }
 
-    public String obtenerPlantillaPasosRealizados(int indice, TramiteEspecifico tramiteEspecifico) {
+    public String obtenerPlantillaPasosRealizados(int indice) {
         int numPasosRealizados = 0;
         String plantilla = null;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (pe.isRealizado()) {
                 numPasosRealizados++;
             }
         }
         String[] todo_pasos = new String[numPasosRealizados];
         int i = 0;
-        for (PasoEspecifico pe : tramiteEspecifico.getPasosEspecificos()) {
+        for (PasoEspecifico pe : pasosEspecificos) {
             if (pe.isRealizado()) {
                 todo_pasos[i] = pe.getNombrePaso();
                 i++;
             }
         }
         for (Paso p : ventanaPrincipal.getLista().getTramite().getPasos()) {
+            System.out.println("Longitud "+todo_pasos.length);
             if (todo_pasos[indice].contains(p.getNombrePaso())) {
                 plantilla = p.getPlantilla();
             }
