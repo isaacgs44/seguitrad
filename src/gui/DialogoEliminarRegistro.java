@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 /**
  * Elimina el trámite específico seleccionado.
@@ -14,7 +15,7 @@ import javax.swing.JDialog;
  * ingresado, los resultados se muestran en una tabla y elimina de la tabla y de
  * la lista de trámites el trámite específico seleccionado.
  * </p>
- * 
+ *
  * @author jesus
  * @see gui.PanelBuscar
  *
@@ -23,8 +24,8 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
 
     private static final long serialVersionUID = 1714426157964322168L;
     /**
-     * 
-    Cierra la ventana eliminar registro.
+     *
+     * Cierra la ventana eliminar registro.
      */
     private JButton cerrarBoton;
     /**
@@ -35,14 +36,14 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
      * Referencia a la clase <code>PanelBuscar</code>. Clase que contiene todos
      * los métodos y componentes necesarios para realizar la búsqueda de
      * trámites específicos.
-     * 
+     *
      * @see gui.PanelBuscar
      */
     private PanelBuscar panelBuscar;
     /**
      * Ubica el diálogo dentro de la ventana principal del sistema. Se obtiene
      * todos los datos y trámites que se han guardado.
-     * 
+     *
      * @see gui.VentanaPrincipal
      */
     private VentanaPrincipal ventanaPrincipal;
@@ -51,8 +52,9 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
      * <p>
      * Agrega el panel buscar y los botones que se visualizan en la ventana.
      * </p>
-     * 
-     * @param ventanaPrincipal. Referencia a la clase <code>VentanaPrincipal</code>
+     *
+     * @param ventanaPrincipal. Referencia a la clase
+     * <code>VentanaPrincipal</code>
      * @see #ventanaPrincipal.
      */
     public DialogoEliminarRegistro(VentanaPrincipal ventanaPrincipal) {
@@ -93,13 +95,21 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
         if (e.getSource().equals(cerrarBoton)) {
             dispose();
         } else if (e.getSource().equals(eliminarRegistroBoton)) {
-            int index = ventanaPrincipal.getLista().getListaTramitesEsp().lastIndexOf(panelBuscar.getTramiteSeleccionado());
-            System.out.println("INDEX : " + index);
-  
-            ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
-            System.out.println("File Seleccionada : " + panelBuscar.obtenerFilaSeleccionada());
-            panelBuscar.eliminarFilaSeleccionada(panelBuscar.obtenerFilaSeleccionada());
-            panelBuscar.buscar("", "");
+            int respuesta = JOptionPane.showConfirmDialog(this,
+                    "¿Desea eliminar este registro?"
+                    + "\nSe perderá toda la información asociada a este trámite, incluyendo documentos.", "Seguitrad UMAR",
+                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (respuesta == JOptionPane.YES_OPTION) {
+                int index = ventanaPrincipal.getLista().getListaTramitesEsp().lastIndexOf(panelBuscar.getTramiteSeleccionado());
+                System.out.println("INDEX : " + index);
+                ventanaPrincipal.getLista().getTramiesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index)); //añadimos objeto a la lista por borrar en la base de datos
+                ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
+                ventanaPrincipal.getLista().setHayCambios(true);
+                System.out.println("File Seleccionada : " + panelBuscar.obtenerFilaSeleccionada());
+                panelBuscar.eliminarFilaSeleccionada(panelBuscar.obtenerFilaSeleccionada());
+                panelBuscar.buscar("", "");
+            }
+
         }
     }
 }

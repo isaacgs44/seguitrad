@@ -376,6 +376,7 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
                     } else {
                         pasoEspecifico.setFechaLimite(null);
                     }
+                    pasoEspecifico.setIdPasoEsp(obtenerIdPasoEsp(tramiteEspecifico));
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
                 if(p.getRepeticion()==0){
@@ -388,14 +389,30 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
                     pasoEspecifico.setFechaRealizacion(null);
                     pasoEspecifico.setDocumento("");
                     pasoEspecifico.setFechaLimite(null);
+                    pasoEspecifico.setIdPasoEsp(obtenerIdPasoEsp(tramiteEspecifico));
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
                
         }
         tramiteEspecifico.setIdTramite(idTramite);
+        tramiteEspecifico.setNuevo(true);
+        ventanaPrincipal.getLista().setHayCambios(true);
         ventanaPrincipal.getLista().agregarTramiteEspecifico(tramiteEspecifico);
-
-        //insertar el tramite especifico en BD
-        tramiteEspecifico.insertarTramiteEspecifico();
+    }
+    
+    public int obtenerIdPasoEsp(TramiteEspecifico tramiteEspecifico){
+        int nuevoID = 0;
+        for(TramiteEspecifico t : this.ventanaPrincipal.getLista().getListaTramitesEsp()){
+            for(PasoEspecifico p : t.getPasosEspecificos()){
+                if(p.getIdPasoEsp() > nuevoID)
+                    nuevoID = p.getIdPasoEsp();
+            }
+        }
+        for(PasoEspecifico p1 : tramiteEspecifico.getPasosEspecificos()){
+            if(p1.getIdPasoEsp() > nuevoID)
+                nuevoID = p1.getIdPasoEsp();
+        }
+        nuevoID++;
+        return nuevoID;
     }
 }

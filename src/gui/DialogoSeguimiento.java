@@ -86,6 +86,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         paso = new PasoEspecifico();
         for (PasoEspecifico p : tramiteEspecifico.getPasosEspecificos()) {
             PasoEspecifico p2 = new PasoEspecifico();
+            p2.setIdPasoEsp(p.getIdPasoEsp());
             p2.setNombrePaso(p.getNombrePaso());
             p2.setNumPaso(p.getNumPaso());
             p2.setDocumento(p.getDocumento());
@@ -93,6 +94,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             p2.setFechaRealizacion(p.getFechaRealizacion());
             p2.setRealizado(p.isRealizado());
             p2.setRepeticion(p.getRepeticion());
+            p2.setCambio(false);
+            p2.setNuevo(false);
             System.out.println("Repeticiones antes de almacenar en la copia = "+p.getRepeticion());
             pasosModificados.add(p2);
         }
@@ -395,6 +398,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         }
         if (e.getSource() == aceptarBoton) {
             tramiteEspecifico.setPasosEspecificos(pasosModificados);
+            ventanaPrincipal.getLista().setHayCambios(true);
             dispose();
         }
         if (e.getSource() == editarBoton) {
@@ -483,6 +487,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                     File path = new File(getPasoSeleccionadoRealizado(indiceS).getDocumento());
                     path.delete();
                     getPasoSeleccionadoRealizado(indiceS).setDocumento(null);
+                    getPasoSeleccionadoRealizado(indiceS).setCambio(true);
                     JOptionPane.showMessageDialog(this, "Documento eliminado",
                             "Aviso", JOptionPane.INFORMATION_MESSAGE);
                     resetPanel();
@@ -499,6 +504,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         PasoEspecifico pEliminar = getPasoSeleccionadoRealizado(indice);
         if (pEliminar.getRepeticion() != 0) {
             pEliminar.setRealizado(false);
+            pEliminar.setCambio(true);
         } else {
             pasosModificados.remove(pEliminar);
         }
@@ -595,6 +601,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                     rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + getPasoSeleccionadoRealizado(indiceS).getNombrePaso() + extension;
                     UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
                     getPasoSeleccionadoRealizado(indiceS).setDocumento(rutaNueva);
+                    getPasoSeleccionadoRealizado(indiceS).setCambio(true);
                     JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
                             "Aviso", JOptionPane.INFORMATION_MESSAGE);
                     resetPanel();
@@ -842,11 +849,15 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         PasoEspecifico pe = getPasoSeleccionadoSinRealizar(indice);
         System.out.println("Repeticiones del paso "+pe.getNombrePaso()+" Numero de veces "+pe.getRepeticion());
         if (pe.getRepeticion() > 0) {
+            System.out.println("------------------------------Es Cambio----------------");
             pe.setRealizado(true);
             pe.setFechaRealizacion(d);
             pe.setDocumento(datoEspecifico.getText());
+            pe.setCambio(true);
+            pe.setNuevo(false);
         }
-        if (pe.getRepeticion() == 0) {
+        if (pe.getRepeticion() == 0) { // indefinidos
+            System.out.println("------------------------------Es Nuevo----------------");
             PasoEspecifico pNuevo = new PasoEspecifico();
             pNuevo.setNombrePaso(pe.getNombrePaso());
             pNuevo.setNumPaso(pe.getNumPaso());
@@ -855,6 +866,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             pNuevo.setFechaRealizacion(d);
             pNuevo.setFechaLimite(null);
             pNuevo.setRepeticion(0);
+            pNuevo.setNuevo(true);
+            pNuevo.setCambio(false);
             pasosModificados.add(pNuevo);
         }
         ocultarElementos();

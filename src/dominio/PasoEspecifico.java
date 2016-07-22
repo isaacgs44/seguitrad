@@ -1,7 +1,11 @@
 package dominio;
 
+import basedatos.BaseDatos;
+import excepcion.BaseDatosException;
 import java.util.Date;
 import excepcion.TramiteEspecificoException;
+import java.sql.SQLException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -15,9 +19,15 @@ public class PasoEspecifico implements Comparable<PasoEspecifico> {
     private Date fechaRealizacion;
     private String documento;
     private int numPaso;
+    private boolean cambio;
+    private boolean nuevo;
+    private int idPasoEsp;
 
-//    public PasoEspecifico() {
-//    }
+    public PasoEspecifico() {
+        cambio = false;
+        nuevo = false;
+    }
+
     public int getNumPaso() {
         return numPaso;
     }
@@ -101,8 +111,33 @@ public class PasoEspecifico implements Comparable<PasoEspecifico> {
         return false;
     }
 
-    public boolean insertarPasoEspecifico() {
-        return false;
+    public void insertarPasoEspecifico(BaseDatos bd, TramiteEspecifico t) throws BaseDatosException, SQLException {
+        DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
+        System.out.println("\n--------------NUEVO PASO ESPECIFICO----------------");
+        System.out.println("Nombre: " + nombrePaso);
+        System.out.println("Fecha R: "+formato.format(fechaRealizacion));
+        System.out.println("Realizado: " + realizado);
+        System.out.println("Documento: " + documento);
+        
+        String columnas = "INSERT INTO pasos_especificos ('idPasoEsp','idRegistro_tramiteEsp','num_paso'";
+        String valores = " VALUES ( " + idPasoEsp + "," + t.getIdTramite() + "," + numPaso;
+
+        if (fechaLimite != null) {
+            columnas += ",'fecha_limite'";
+            valores += ", '" + formato.format(fechaLimite) + "'";
+        }
+        if (fechaRealizacion != null) {
+            columnas += ",'fecha_realizacion'";
+            valores += ", '" + formato.format(fechaRealizacion) + "'";
+        }
+        if (documento != null && !documento.equals("")) {
+            columnas += ",'documento'";
+            valores += ", '" + documento + "'";
+        }
+        columnas += ",'realizado')";
+        valores += ",'" + realizado + "')";
+        System.out.println(columnas + valores);
+        bd.realizarAccion(columnas + valores);
     }
 
     public boolean actualizarPasoEspecifico() {
@@ -116,4 +151,45 @@ public class PasoEspecifico implements Comparable<PasoEspecifico> {
     public boolean buscarPasoEspecifico() {
         return false;
     }
+
+    public boolean isCambio() {
+        return cambio;
+    }
+
+    public void setCambio(boolean cambio) {
+        this.cambio = cambio;
+    }
+
+    public int getIdPasoEsp() {
+        return idPasoEsp;
+    }
+
+    public void setIdPasoEsp(int idPasoEsp) {
+        this.idPasoEsp = idPasoEsp;
+    }
+
+    public boolean isNuevo() {
+        return nuevo;
+    }
+
+    public void setNuevo(boolean nuevo) {
+        this.nuevo = nuevo;
+    }
+
+    public void modificarPasoEspecifico(BaseDatos bd, TramiteEspecifico t) throws BaseDatosException, SQLException {
+        DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
+        System.out.println("\n--------------MODIFICAR PASO ESPECIFICO----------------");
+        System.out.println("Nombre: " + nombrePaso);
+        System.out.println("Fecha R: "+formato.format(fechaRealizacion));
+        System.out.println("Realizado: " + realizado);
+        System.out.println("Documento: " + documento);
+        //borramos registro
+        t.setBd(bd);
+        String c2 = "DELETE FROM pasos_especificos WHERE idRegistro_tramiteEsp='"+ t.getIdTramite() +"' and idPasoEsp='" + idPasoEsp + "'";
+        System.out.println(c2);
+        bd.realizarAccion(c2);
+//        insertamos con nuevos valores
+        insertarPasoEspecifico(bd, t);
+    }
+
 }
