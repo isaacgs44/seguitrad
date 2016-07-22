@@ -48,6 +48,7 @@ public class DialogoBuscarSeguimiento extends JDialog implements ActionListener 
         } else if (e.getSource().equals(seguimientoBoton)) {
             //new DialogoSeguimiento(ventanaPrincipal, ventanaPrincipal.getLista().getListaTramitesEsp().get(panelBuscar.getTramiteSeleccionado().getIdTramite()));
             new DialogoSeguimiento(ventanaPrincipal, panelBuscar.getTramiteSeleccionado());
+            panelBuscar.buscar("", "");
         }
     }
 }

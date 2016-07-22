@@ -191,7 +191,6 @@ public class PanelPasoRealizado extends JPanel implements ActionListener {
             }
         }
         for (Paso p : ventanaPrincipal.getLista().getTramite().getPasos()) {
-            System.out.println("Longitud "+todo_pasos.length);
             if (todo_pasos[indice].contains(p.getNombrePaso())) {
                 plantilla = p.getPlantilla();
             }
