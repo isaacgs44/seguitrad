@@ -229,6 +229,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         paso = new PasoEspecifico();
         for (PasoEspecifico p : tramiteEspecifico.getPasosEspecificos()) {
             PasoEspecifico p2 = new PasoEspecifico();
+            p2.setIdPasoEsp(p.getIdPasoEsp());
             p2.setNombrePaso(p.getNombrePaso());
             p2.setNumPaso(p.getNumPaso());
             p2.setDocumento(p.getDocumento());
@@ -236,7 +237,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             p2.setFechaRealizacion(p.getFechaRealizacion());
             p2.setRealizado(p.isRealizado());
             p2.setRepeticion(p.getRepeticion());
-            System.out.println("Repeticiones antes de almacenar en la copia = " + p.getRepeticion());
+            p2.setCambio(false);
+            p2.setNuevo(false);
             pasosModificados.add(p2);
         }
         for (PasoEspecifico pasoEspecifico : tramiteEspecifico.getPasosEspecificos()) {
@@ -481,6 +483,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         }
         if (e.getSource() == aceptarBoton) {
             tramiteEspecifico.setPasosEspecificos(pasosModificados);
+            ventanaPrincipal.getLista().setHayCambios(true);
             dispose();
         }
         if (e.getSource() == editarBoton) {
@@ -587,6 +590,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                         File path = new File(getPasoSeleccionadoRealizado(indiceS).getDocumento());
                         path.delete();
                         getPasoSeleccionadoRealizado(indiceS).setDocumento(null);
+                    getPasoSeleccionadoRealizado(indiceS).setCambio(true);
                         JOptionPane.showMessageDialog(this, "Documento eliminado",
                                 "Aviso", JOptionPane.INFORMATION_MESSAGE);
                         resetPanel();
@@ -623,7 +627,9 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         }
         if (pEliminar.getRepeticion() != 0) {
             pEliminar.setRealizado(false);
+            pEliminar.setCambio(true);
         } else {
+            ventanaPrincipal.getLista().getPasosBasura().add(pEliminar);
             pasosModificados.remove(pEliminar);
         }
         //Determinar el cambio de estado del tramite en caso de que el paso eliminado tuviera cambio
@@ -635,6 +641,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                     String[] val = new String[1];
                     val[0] = p.getEstado();
                     tramiteEspecifico.modificarCampo(tramiteEspecifico.obtenerCampo(posicion), val);
+                    tramiteEspecifico.setCambio(true);
                 }
                 int contador = 0;
                 for (PasoEspecifico pe1 : pasosModificados) {
@@ -653,6 +660,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                         indice2++;
                     }
                     tramiteEspecifico.modificarCampo(tramiteEspecifico.obtenerCampo(posicion), opciones);
+                    tramiteEspecifico.setCambio(true);
                 }
             }
         }
@@ -763,6 +771,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
 
                     UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
                     getPasoSeleccionadoRealizado(indiceS).setDocumento(rutaNueva);
+                    getPasoSeleccionadoRealizado(indiceS).setCambio(true);
                     JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
                             "Aviso", JOptionPane.INFORMATION_MESSAGE);
                     resetPanel();
@@ -821,7 +830,6 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         String tramitante = tramiteEspecifico.obtenerValores(0)[0];
         String rutaNueva;
         rutaNueva = this.ventanaPrincipal.getLista().getBd().getDirectorio() + "doc_" + tramitante + "_" + todo_pasos[indice] + extension;
-        System.out.println("Ruta nueva " + rutaNueva);
         UtileriasArchivo.copiarArchivo(ruta, rutaNueva);
         getPasoSeleccionadoSinRealizar(indice).setDocumento(rutaNueva);
         JOptionPane.showMessageDialog(this, "Documento cargado exitosamente",
@@ -1007,6 +1015,8 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             pe.setRealizado(true);
             pe.setFechaRealizacion(d);
             pe.setDocumento(datoEspecifico.getText());
+            pe.setCambio(true);
+            pe.setNuevo(false);
         }
         //Si el paso especifico es indefinido, se crea un objeto de tipo PasoEspecifico para añadirlo
         //a pasos realizados para manejarlo de forma independiente y evitar sobreescritura.
@@ -1019,8 +1029,11 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             pNuevo.setFechaRealizacion(d);
             pNuevo.setFechaLimite(null);
             pNuevo.setRepeticion(0);
+            pNuevo.setNuevo(true);
+            pNuevo.setCambio(false);
             pasosModificados.add(pNuevo);
         }
+        tramiteEspecifico.setCambio(true);
         ocultarElementos();
     }
 

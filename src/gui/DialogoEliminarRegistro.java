@@ -2,7 +2,6 @@ package gui;
 
 import dominio.Paso;
 import dominio.PasoEspecifico;
-import dominio.TramiteEspecifico;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -97,8 +96,7 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(cerrarBoton)) {
             dispose();
-        }
-        if (e.getSource().equals(eliminarRegistroBoton)) {
+        } else if (e.getSource().equals(eliminarRegistroBoton)) {
             int respuesta = JOptionPane.showConfirmDialog(this,
                     "¿Está seguro de que desea eliminar el registro del trámite?", "Advertencia",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -120,7 +118,10 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
                             + "¿Desea continuar? ", "Advertencia",
                             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (respuesta2 == JOptionPane.YES_NO_OPTION) {
+                        ventanaPrincipal.getLista().getTramiesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
                         ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
+                        ventanaPrincipal.getLista().setHayCambios(true);
+                        System.out.println("File Seleccionada : " + panelBuscar.obtenerFilaSeleccionada());
                         panelBuscar.eliminarFilaSeleccionada(panelBuscar.obtenerFilaSeleccionada());
                         panelBuscar.buscar("", "");
                         JOptionPane.showMessageDialog(this, "Registro eliminado exitosamente",
@@ -128,8 +129,11 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
                     } else if (respuesta2 == JOptionPane.NO_OPTION) {
                         dispose();
                     }
+
                 }
                 if (!obligatorioRealizado) {
+                    ventanaPrincipal.getLista().getTramiesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
+                    ventanaPrincipal.getLista().setHayCambios(true);
                     ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
                     panelBuscar.eliminarFilaSeleccionada(panelBuscar.obtenerFilaSeleccionada());
                     panelBuscar.buscar("", "");

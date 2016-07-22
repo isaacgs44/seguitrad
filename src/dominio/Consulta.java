@@ -17,6 +17,7 @@ public class Consulta implements Comparable<Consulta> {
     private ArrayList<String[]> valores;
     private ArrayList<TramiteEspecifico> tramitesEncontrados;
     private DefaultTableModel modelo;
+    private boolean nuevo;
     private final String[] columnNames = {"Nombre", "Título",
         "Fecha de inicio", "Fecha de fin", "Estado"};
 
@@ -26,6 +27,7 @@ public class Consulta implements Comparable<Consulta> {
         valores = new ArrayList<>();
         Object[][] data = {};
         modelo = new DefaultTableModel(data, columnNames);
+        nuevo = false;
     }
 
     public Consulta(Consulta consulta) {
@@ -38,6 +40,7 @@ public class Consulta implements Comparable<Consulta> {
         for (String[] valor : consulta.valores) {
             this.valores.add(valor);
         }
+        nuevo = false;
     }
 
     public String getNombreConsulta() {
@@ -295,4 +298,12 @@ public class Consulta implements Comparable<Consulta> {
         }     
         return new Date(Integer.parseInt(datos[2])-1900, Integer.parseInt(datos[1])-1, Integer.parseInt(datos[0]));
     }
+
+    public boolean isNuevo() {
+        return nuevo;
+}
+
+    public void setNuevo(boolean nuevo) {
+        this.nuevo = nuevo;
+    }   
 }

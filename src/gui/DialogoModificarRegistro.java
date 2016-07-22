@@ -309,6 +309,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
         ArrayList<Object> componentes = panelCampo.getComponentes();
         ArrayList<JDateChooser> fechas = panelDetallesPaso.getComponentes();
         TramiteEspecifico tramiteEspecifico = new TramiteEspecifico();
+        tramiteEspecifico.setIdTramite(this.tramiteEspecifico.getIdTramite());
         int index = 0;
         JTextField texto;
         JDateChooser fecha;
@@ -381,6 +382,8 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
                 tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
             }
         }
+        tramiteEspecifico.setCambio(true);
         ventanaPrincipal.getLista().getListaTramitesEsp().set(posicion, tramiteEspecifico);
+        ventanaPrincipal.getLista().setHayCambios(true);
     }
 }

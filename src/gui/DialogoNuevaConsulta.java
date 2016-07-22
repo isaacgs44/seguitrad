@@ -670,6 +670,7 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                     if (!nombre.trim().isEmpty()) {
                         consulta.setNombreConsulta(nombre);
                         try {
+                            consulta.setNuevo(true);
                             ventanaPrincipal.getLista().agregarConsulta(consulta);
                             ventanaPrincipal.getLista().setHayCambios(true);
                             setTitle(nombre + " - Consulta");

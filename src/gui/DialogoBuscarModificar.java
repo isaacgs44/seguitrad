@@ -54,6 +54,7 @@ public class DialogoBuscarModificar extends JDialog implements ActionListener {
             //new DialogoModificarRegistro(ventanaPrincipal, ventanaPrincipal.getLista().getListaTramites().get(0));
              new DialogoModificarRegistro(ventanaPrincipal, panelBuscar.getTramiteSeleccionado());
              panelBuscar.buscar("", "");
+           
         }
     }
 }

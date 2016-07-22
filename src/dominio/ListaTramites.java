@@ -11,14 +11,19 @@ import basedatos.BaseDatos;
 import excepcion.BaseDatosException;
 import excepcion.TramiteException;
 import gui.PanelCampo;
+import gui.VentanaPrincipal;
 import java.sql.ResultSet;
 import java.util.Date;
 import java.util.StringTokenizer;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 public class ListaTramites {
 
     private Tramite tramite;
     private ArrayList<TramiteEspecifico> listaTramites;
+    private ArrayList<TramiteEspecifico> tramiesBasura; 
+    private ArrayList<PasoEspecifico> pasosBasura;
     private ArrayList<Consulta> listaConsultas;
     private boolean hayCambios;
     private BaseDatos bd;
@@ -35,7 +40,9 @@ public class ListaTramites {
     private void inicializar() {
         tramite = null;
         listaTramites = new ArrayList<>();
+        tramiesBasura = new ArrayList<>();
         listaConsultas = new ArrayList<>();
+        pasosBasura = new ArrayList<>();
         hayCambios = false;
     }
 
@@ -151,15 +158,71 @@ public class ListaTramites {
      *
      * @autor isaac - cresencio
      */
-    public void guardarArchivo() throws BaseDatosException {
-        // FALTA - borrar toda la BD antes de insertar
-        bd = this.getBd();
-
-        // insertamos consutas...
+    public void guardarArchivo() throws BaseDatosException, SQLException {
+        bd = getBd();
+        // insertamos nuevas consultas...
+        System.out.println("--------------------------------GUARDA VALORES----------------------------------");
         for (Consulta consulta : getListaConsultas()) {
-
+            if (consulta.isNuevo()) {
+                System.out.println("nueva consulta: " + consulta.getNombreConsulta());
             consulta.insertarConsulta(bd);
+                consulta.setNuevo(false);
         }
+    }
+
+        // insertamos nuevos registros y cambios...
+        for (TramiteEspecifico t : getListaTramitesEsp()) {
+            if (t.isNuevo()) { // agregar nuevo registro
+                System.out.println("nuevo registro: " + t.getValores().get(0)[0]);
+                System.out.println("id: " + t.getIdTramite());
+                t.insertarTramiteEspecifico(bd);
+                t.setNuevo(false);
+            } else if (t.isCambio()) { // modificar registro
+                System.out.println("cambio registro: " + t.getValores().get(0)[0]);
+                System.out.println("id: " + t.getIdTramite());
+                t.modificarTramiteEspecifico(bd);
+                t.setCambio(false);
+            }
+        }
+        for (TramiteEspecifico t : getListaTramitesEsp()) {
+            for (PasoEspecifico p : t.getPasosEspecificos()) {
+                if (p.isNuevo()) { // en el caso de realizar un indefinido
+                    System.out.println("Paso nuevo: " + p.getNombrePaso());
+                    System.out.println("id: " + obtenerIDPasoEsp());
+                    p.setIdPasoEsp(obtenerIDPasoEsp());
+                    p.insertarPasoEspecifico(bd, t);
+                    p.setNuevo(false);
+                } else if (p.isCambio()) { // al cambiar de estado
+                    System.out.println("cambio en paso: " + p.getNombrePaso());
+                    System.out.println("id: " + p.getIdPasoEsp());
+                    p.setIdPasoEsp(p.getIdPasoEsp());
+                    p.modificarPasoEspecifico(bd, t);
+                    p.setCambio(false);
+                }
+            }
+        }
+        
+        if(tramiesBasura.size()>0){ // hay registros por borrar
+            System.out.println("--------------Eliminar Tramite---------");
+            for(TramiteEspecifico t: tramiesBasura){
+                System.out.println("Nombre: " + t.getValores().get(0)[0]);
+                System.out.println("Id: "+ t.getIdTramite());
+                t.eliminarTramiteEspecifico(bd);
+                
+                // falta eliminar documentos
+                
+            }
+            tramiesBasura.clear();
+        }
+        
+        if(pasosBasura.size()>0){
+            for(PasoEspecifico p : pasosBasura){
+                p.eliminarPasoEspecifico(bd);
+            }
+            pasosBasura.clear();
+        }
+        
+        setHayCambios(false);
     }
 
     /**
@@ -303,13 +366,15 @@ public class ListaTramites {
                         i++;
                     }
                     pasoEspecifico.setRepeticion(repeticiones);
+                    pasoEspecifico.setIdPasoEsp(Integer.parseInt(resultSet.getString("idPasoEsp")));
+                    pasoEspecifico.setNumPaso(Integer.parseInt(resultSet.getString(3)));
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
                 agregarTramiteEspecifico(tramiteEspecifico);
             }
             bd.cerrarConexion();
 
-            // Recuperación de conslutas
+            // Recuperación de consultas
             String consulta3 = "SELECT * FROM consulta";
             ResultSet rs3 = bd.realizarConsulta(consulta3);
             boolean nuevo;
@@ -397,4 +462,37 @@ public class ListaTramites {
     public void cerrarArchivo() {
         inicializar();
     }
+
+    private int obtenerIDPasoEsp() {
+        int nuevoID = 0;
+        for(TramiteEspecifico t : listaTramites){
+            for(PasoEspecifico p : t.getPasosEspecificos()){
+                if(p.getIdPasoEsp() > nuevoID)
+                    nuevoID = p.getIdPasoEsp();
+}
+        }
+        nuevoID++;
+        return nuevoID;
+    }
+
+    public ArrayList<TramiteEspecifico> getTramiesBasura() {
+        return tramiesBasura;
+    }
+
+    public void setTramiesBasura(ArrayList<TramiteEspecifico> tramiesBasura) {
+        this.tramiesBasura = tramiesBasura;
+    }
+
+    public ArrayList<PasoEspecifico> getPasosBasura() {
+        return pasosBasura;
+    }
+
+    public void setPasosBasura(ArrayList<PasoEspecifico> pasosBasura) {
+        this.pasosBasura = pasosBasura;
+    }
+
+    
+    
+    
+    
 }
