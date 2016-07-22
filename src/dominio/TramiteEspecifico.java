@@ -18,7 +18,7 @@ public class TramiteEspecifico {
     private boolean nuevo;
     private boolean cambio;
     private BaseDatos bd;
-
+    
     /**
      * 
      */

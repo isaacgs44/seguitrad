@@ -327,7 +327,7 @@ public class ListaTramites {
 
                 /*TRABAJANDO EN RECUPERACION DE PASOS ESPECIFICOS*/
                 String consultaPasosEsp = "select * from pasos_especificos inner join meta_paso"
-                        + " where pasos_especificos.num_paso= meta_paso.num_paso"
+                        + " where pasos_especificos.num_paso = meta_paso.num_paso "
                         + " and idRegistro_tramiteEsp = " + tramiteEspecifico.getIdTramite();
                 ResultSet resultSet = bd.realizarConsulta(consultaPasosEsp);
                 int i = 0;
