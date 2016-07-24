@@ -22,12 +22,11 @@ public class ListaTramites {
 
     private Tramite tramite;
     private ArrayList<TramiteEspecifico> listaTramites;
-    private ArrayList<TramiteEspecifico> tramiesBasura; 
+    private ArrayList<TramiteEspecifico> tramitesBasura; 
     private ArrayList<PasoEspecifico> pasosBasura;
     private ArrayList<Consulta> listaConsultas;
     private boolean hayCambios;
     private BaseDatos bd;
-    private PanelCampo panelCampo;
     FileDialog fd = new FileDialog(new Frame(), "Seleccionar trámite", FileDialog.LOAD);
 
     /**
@@ -40,7 +39,7 @@ public class ListaTramites {
     private void inicializar() {
         tramite = null;
         listaTramites = new ArrayList<>();
-        tramiesBasura = new ArrayList<>();
+        tramitesBasura = new ArrayList<>();
         listaConsultas = new ArrayList<>();
         pasosBasura = new ArrayList<>();
         hayCambios = false;
@@ -172,17 +171,23 @@ public class ListaTramites {
 
         // insertamos nuevos registros y cambios...
         for (TramiteEspecifico t : getListaTramitesEsp()) {
-            if (t.isNuevo()) { // agregar nuevo registro
+            if (t.isNuevo()) { // agregar nuevo trámite específico
                 System.out.println("nuevo registro: " + t.getValores().get(0)[0]);
                 System.out.println("id: " + t.getIdTramite());
                 t.insertarTramiteEspecifico(bd);
                 t.setNuevo(false);
-            } else if (t.isCambio()) { // modificar registro
+            } else if (t.isModificar()) { // modificar trámite específico
                 System.out.println("cambio registro: " + t.getValores().get(0)[0]);
                 System.out.println("id: " + t.getIdTramite());
                 t.modificarTramiteEspecifico(bd);
-                t.setCambio(false);
+                t.setModificar(false);
+            }  else if (t.isCambioEstado()) { // actualizar estado de un trámite específico
+                System.out.println("cambio estado: " + t.getValores().get(0)[0]);
+                System.out.println("id: " + t.getIdTramite());
+                t.actualizarEstadoTramEsp(bd);
+                t.setCambioEstado(false);
             }
+            
         }
         for (TramiteEspecifico t : getListaTramitesEsp()) {
             for (PasoEspecifico p : t.getPasosEspecificos()) {
@@ -202,9 +207,9 @@ public class ListaTramites {
             }
         }
         
-        if(tramiesBasura.size()>0){ // hay registros por borrar
+        if(tramitesBasura.size()>0){ // hay registros por borrar
             System.out.println("--------------Eliminar Tramite---------");
-            for(TramiteEspecifico t: tramiesBasura){
+            for(TramiteEspecifico t: tramitesBasura){
                 System.out.println("Nombre: " + t.getValores().get(0)[0]);
                 System.out.println("Id: "+ t.getIdTramite());
                 t.eliminarTramiteEspecifico(bd);
@@ -212,7 +217,7 @@ public class ListaTramites {
                 // falta eliminar documentos
                 
             }
-            tramiesBasura.clear();
+            tramitesBasura.clear();
         }
         
         if(pasosBasura.size()>0){
@@ -328,17 +333,22 @@ public class ListaTramites {
                 /*TRABAJANDO EN RECUPERACION DE PASOS ESPECIFICOS*/
                 String consultaPasosEsp = "select * from pasos_especificos inner join meta_paso"
                         + " where pasos_especificos.num_paso = meta_paso.num_paso "
-                        + " and idRegistro_tramiteEsp = " + tramiteEspecifico.getIdTramite();
+                        + " and idRegistro_tramiteEsp = " + tramiteEspecifico.getIdTramite() + " order by num_paso";
                 ResultSet resultSet = bd.realizarConsulta(consultaPasosEsp);
                 int i = 0;
+                System.out.println("");
+                
                 while (resultSet.next()) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
                     if (resultSet.getInt("repeticion") >= 1) {
+                        System.out.println("Repeticion: " + resultSet.getInt("repeticion"));
                         String nombrePaso = resultSet.getInt("repeticion") == 1 ? resultSet.getString("nombre_paso") : resultSet.getString("nombre_paso") + " " + i;
                         pasoEspecifico.setNombrePaso(nombrePaso);
-                    } else {
-                        pasoEspecifico.setNombrePaso(resultSet.getString("nombre_paso"));
+                    } else if(resultSet.getInt("repeticion") == 0){ // indefinidos
+                        System.out.println("Indefinido");
+                        pasoEspecifico.setNombrePaso("*" + resultSet.getString("nombre_paso"));
                     }
+                    
                     boolean realizado = Boolean.parseBoolean(resultSet.getString("realizado"));
                     pasoEspecifico.setRealizado(realizado);
                     try {
@@ -460,7 +470,12 @@ public class ListaTramites {
     }
 
     public void cerrarArchivo() {
-        inicializar();
+        tramite = null;
+        listaTramites.clear();
+        tramitesBasura.clear();
+        listaConsultas.clear();
+        pasosBasura.clear();
+        hayCambios = false;
     }
 
     private int obtenerIDPasoEsp() {
@@ -475,12 +490,12 @@ public class ListaTramites {
         return nuevoID;
     }
 
-    public ArrayList<TramiteEspecifico> getTramiesBasura() {
-        return tramiesBasura;
+    public ArrayList<TramiteEspecifico> getTramitesBasura() {
+        return tramitesBasura;
     }
 
-    public void setTramiesBasura(ArrayList<TramiteEspecifico> tramiesBasura) {
-        this.tramiesBasura = tramiesBasura;
+    public void setTramitesBasura(ArrayList<TramiteEspecifico> tramiesBasura) {
+        this.tramitesBasura = tramiesBasura;
     }
 
     public ArrayList<PasoEspecifico> getPasosBasura() {

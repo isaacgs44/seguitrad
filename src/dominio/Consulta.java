@@ -120,6 +120,7 @@ public class Consulta implements Comparable<Consulta> {
      * @autor isaac
      */
     public DefaultTableModel ejecutarConsulta(ArrayList<TramiteEspecifico> listaTramitesEsp) throws BaseDatosException, SQLException {
+        System.out.println("---------------------------Ejecutamos Consulta-----------------------------");
         int posicion;
         ArrayList<String[]> datosTabla = new ArrayList<>();
         Object[][] data = null;
@@ -140,26 +141,58 @@ public class Consulta implements Comparable<Consulta> {
                     case FECHA:
                         limite = valorBuscar.indexOf("/");
                         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
-                        String fechaInferior = formato.format(Long.parseLong(valorBuscar.substring(0, limite - 1)));
-                        String fechaSuperior = formato.format(Long.parseLong(valorBuscar.substring(limite + 2)));
-                        Date fechaI = obtenerFecha(fechaInferior);
-                        Date fechaS = obtenerFecha(fechaSuperior);
                         Date fechaV = obtenerFecha(valor[0]);
-                        System.out.println(fechaI);
-                        System.out.println(fechaS);
-                        System.out.println(fechaV);
-                        
-                        if ((fechaV.before(fechaS) && fechaV.after(fechaI)) || valor[0].equals(fechaInferior) || valor[0].equals(fechaSuperior)) {
+                        Date fechaI;
+                        Date fechaS;
+                        String fechaInferior;
+                        String fechaSuperior;
+                        try {
+                            fechaInferior = formato.format(Long.parseLong(valorBuscar.substring(0, limite - 1)));
+                            fechaI = obtenerFecha(fechaInferior);
+                        } catch (NumberFormatException e) {
+                            fechaI = fechaV;
+                            fechaInferior = formato.format(fechaV);
+                        }
+                        try {
+                            fechaSuperior = formato.format(Long.parseLong(valorBuscar.substring(limite + 2)));
+                            fechaS = obtenerFecha(fechaSuperior);
+                        } catch (NumberFormatException e) {
+                            fechaS = fechaV;
+                            fechaSuperior = formato.format(fechaV);
+                        }
+                        System.out.println("fecha I: " + fechaI);
+                        System.out.println("fecha S: " + fechaS);
+                        System.out.println("fecha Registro: " +fechaV);
+
+                       // if ((fechaV.before(fechaS) && fechaV.after(fechaI)) || valor[0].equals(fechaInferior) || valor[0].equals(fechaSuperior)) {
+                        if (fechaV.compareTo(fechaS)<=0 && fechaV.compareTo(fechaI)>=0) {
                             resultado.add(Boolean.TRUE);
+                            System.out.println(">>resultado : true");
                         } else {
                             resultado.add(Boolean.FALSE);
+                            System.out.println(">>resultado : false");
                         }
                         break;
                     case NUMERO:
+                        System.out.println("Valor a buscar: " + valorBuscar);
                         limite = valorBuscar.indexOf("/");
-                        int menor = Integer.parseInt(valorBuscar.substring(0, limite - 1));
-                        int mayor = Integer.parseInt(valorBuscar.substring(limite + 2));
                         int num = Integer.parseInt(valor[0]);
+                        int mayor;
+                        int menor;
+                        try {
+                            menor = Integer.parseInt(valorBuscar.substring(0, limite - 1));
+                            System.out.println("menor: " + menor);
+                        } catch (NumberFormatException e) {
+                            menor = num;
+                        }
+                        try {
+                            mayor = Integer.parseInt(valorBuscar.substring(limite + 2));
+                            System.out.println("mayor: " + mayor);
+
+                        } catch (NumberFormatException e) {
+                            mayor = num;
+                        }
+
                         if (num >= menor && num <= mayor) {
                             resultado.add(Boolean.TRUE);
                         } else {
@@ -287,7 +320,7 @@ public class Consulta implements Comparable<Consulta> {
         return agregar;
     }
 
-     private Date obtenerFecha(String fecha) {
+    private Date obtenerFecha(String fecha) {
         System.out.println("Fecha: " + fecha);
         StringTokenizer tokens = new StringTokenizer(fecha, "/");
         String[] datos = new String[tokens.countTokens()];
@@ -295,15 +328,15 @@ public class Consulta implements Comparable<Consulta> {
         while (tokens.hasMoreTokens()) {
             datos[i] = tokens.nextToken().trim();
             i++;
-        }     
-        return new Date(Integer.parseInt(datos[2])-1900, Integer.parseInt(datos[1])-1, Integer.parseInt(datos[0]));
+        }
+        return new Date(Integer.parseInt(datos[2]) - 1900, Integer.parseInt(datos[1]) - 1, Integer.parseInt(datos[0]));
     }
 
     public boolean isNuevo() {
         return nuevo;
-}
+    }
 
     public void setNuevo(boolean nuevo) {
         this.nuevo = nuevo;
-    }   
+    }
 }

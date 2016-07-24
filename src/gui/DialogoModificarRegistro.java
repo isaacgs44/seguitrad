@@ -382,7 +382,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
                 tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
             }
         }
-        tramiteEspecifico.setCambio(true);
+        tramiteEspecifico.setModificar(true);
         ventanaPrincipal.getLista().getListaTramitesEsp().set(posicion, tramiteEspecifico);
         ventanaPrincipal.getLista().setHayCambios(true);
     }

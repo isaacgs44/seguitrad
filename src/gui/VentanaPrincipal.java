@@ -325,8 +325,11 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
      */
     private void abrirTramite() throws BaseDatosException, SQLException {
         if (lista.getTramite() != null) {
-            cerrarTramite();
-        }
+            JOptionPane.showMessageDialog(this,
+                    "Debe cerrar el trámite que esta abierto actualmente.", "Seguitrad UMAR",
+                    JOptionPane.YES_OPTION);
+            }
+    
         if (lista.getTramite() == null) {
             try {
                 lista.abrirArchivo();                             

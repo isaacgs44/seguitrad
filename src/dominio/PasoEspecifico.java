@@ -124,9 +124,6 @@ public class PasoEspecifico implements Comparable<PasoEspecifico> {
         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
         System.out.println("\n--------------NUEVO PASO ESPECIFICO----------------");
         System.out.println("Nombre: " + nombrePaso);
-        System.out.println("Fecha R: "+formato.format(fechaRealizacion));
-        System.out.println("Realizado: " + realizado);
-        System.out.println("Documento: " + documento);
         
         String columnas = "INSERT INTO pasos_especificos ('idPasoEsp','idRegistro_tramiteEsp','num_paso'";
         String valores = " VALUES ( " + idPasoEsp + "," + t.getIdTramite() + "," + numPaso;
@@ -188,10 +185,7 @@ public class PasoEspecifico implements Comparable<PasoEspecifico> {
     public void modificarPasoEspecifico(BaseDatos bd, TramiteEspecifico t) throws BaseDatosException, SQLException {
         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
         System.out.println("\n--------------MODIFICAR PASO ESPECIFICO----------------");
-        System.out.println("Nombre: " + nombrePaso);
-        System.out.println("Fecha R: "+formato.format(fechaRealizacion));
-        System.out.println("Realizado: " + realizado);
-        System.out.println("Documento: " + documento);
+        System.out.println("Nombre: " + nombrePaso + " - id: " + idPasoEsp);
         //borramos registro
         eliminarPasoEspecifico(bd, t);
 //        insertamos con nuevos valores

@@ -118,7 +118,7 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
                             + "¿Desea continuar? ", "Advertencia",
                             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (respuesta2 == JOptionPane.YES_NO_OPTION) {
-                        ventanaPrincipal.getLista().getTramiesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
+                        ventanaPrincipal.getLista().getTramitesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
                         ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
                         ventanaPrincipal.getLista().setHayCambios(true);
                         System.out.println("File Seleccionada : " + panelBuscar.obtenerFilaSeleccionada());
@@ -132,7 +132,7 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
 
                 }
                 if (!obligatorioRealizado) {
-                    ventanaPrincipal.getLista().getTramiesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
+                    ventanaPrincipal.getLista().getTramitesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
                     ventanaPrincipal.getLista().setHayCambios(true);
                     ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
                     panelBuscar.eliminarFilaSeleccionada(panelBuscar.obtenerFilaSeleccionada());

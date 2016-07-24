@@ -16,7 +16,8 @@ public class TramiteEspecifico {
     private ArrayList<String[]> valores;
     private ArrayList<PasoEspecifico> pasosEspecificos;
     private boolean nuevo;
-    private boolean cambio;
+    private boolean modificar;
+    private boolean cambioEstado;
     private BaseDatos bd;
     
     /**
@@ -28,7 +29,8 @@ public class TramiteEspecifico {
         valores = new ArrayList<String[]>();
         pasosEspecificos = new ArrayList<PasoEspecifico>();
         nuevo = false;
-        cambio = false;
+        modificar = false;
+        cambioEstado = false;
     }
 
     public TramiteEspecifico(BaseDatos bd) throws BaseDatosException, SQLException {
@@ -38,7 +40,8 @@ public class TramiteEspecifico {
         pasosEspecificos = new ArrayList<PasoEspecifico>();
         this.bd = bd;
         nuevo = false;
-        cambio = false;
+        modificar = false;
+        cambioEstado = false;
     }
 
     public int getIdTramite() {
@@ -125,7 +128,7 @@ public class TramiteEspecifico {
         //insertamos campos por default
         String[] valoresTramiteesp = new String[5];
         String consulta = "INSERT INTO tramites_especificos ('idRegistro','Nombre_del_solicitante', 'Título',"
-                + "'Fecha_de_inicio', 'Fecha_de_fin', 'Estado') VALUES ( " + obtenerIdRegistro("idRegistro","tramites_especificos") + ", ";
+                + "'Fecha_de_inicio', 'Fecha_de_fin', 'Estado') VALUES ( " + idTramite + ", ";
         for (int i = 0; i < 5; i++) {
             String arregloTemporal[] = valores.get(i);
             valoresTramiteesp[i] = arregloTemporal[0];
@@ -231,14 +234,6 @@ public class TramiteEspecifico {
         this.nuevo = nuevo;
     }
     
-    public boolean isCambio() {
-        return cambio;
-}
-
-    public void setCambio(boolean cambio) {
-        this.cambio = cambio;
-    }
-
     public void modificarTramiteEspecifico(BaseDatos bd) throws BaseDatosException, SQLException {
         System.out.println("\n--------MODIFICAR TRAMITE");
         System.out.println("Nombre: "+valores.get(0)[0]);
@@ -252,7 +247,7 @@ public class TramiteEspecifico {
     }
 
     void eliminarTramiteEspecifico(BaseDatos bd) throws BaseDatosException {
-        System.out.println("\n-------------ELIMINAR TRÃ�MITE---------------------");
+        System.out.println("\n-------------ELIMINAR TRÁMITE---------------------");
         System.out.println("Nombre: " + valores.get(0)[0]);
         this.bd=bd;         
         String c = "DELETE FROM tramites_especificos WHERE idRegistro='"+ idTramite +"'";
@@ -269,6 +264,44 @@ public class TramiteEspecifico {
         bd.realizarAccion(c2);
         bd.realizarAccion(c3);
     }
+    
+    public void actualizarEstadoTramEsp(BaseDatos bd) throws BaseDatosException {
+        this.bd=bd;         
+        String c = "DELETE FROM tramites_especificos WHERE idRegistro='"+ idTramite +"'";
+        bd.realizarAccion(c);
+         this.bd = bd;
+        //insertamos campos por default
+        String[] valoresTramiteesp = new String[5];
+        String consulta = "INSERT INTO tramites_especificos ('idRegistro','Nombre_del_solicitante', 'Título',"
+                + "'Fecha_de_inicio', 'Fecha_de_fin', 'Estado') VALUES ( " + idTramite + ", ";
+        for (int i = 0; i < 5; i++) {
+            String arregloTemporal[] = valores.get(i);
+            valoresTramiteesp[i] = arregloTemporal[0];
+        }
+        consulta += "'" + valoresTramiteesp[0] + "', '" + valoresTramiteesp[1] + "',"
+                + " '" + valoresTramiteesp[2] + "', '" + valoresTramiteesp[3] + "', "
+                + "'" + valoresTramiteesp[4] + "')";
+        bd.realizarAccion(consulta);
+    }
+
+    public boolean isModificar() {
+        return modificar;
+    }
+
+    public void setModificar(boolean modificar) {
+        this.modificar = modificar;
+    }
+
+    public boolean isCambioEstado() {
+        return cambioEstado;
+    }
+
+    public void setCambioEstado(boolean cambioEstado) {
+        this.cambioEstado = cambioEstado;
+    }
+
+    
+    
     
     
     

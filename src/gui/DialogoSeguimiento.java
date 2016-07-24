@@ -620,15 +620,20 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
      */
     public void eliminarPasoRealizado(int indice) {
         PasoEspecifico pEliminar = getPasoSeleccionadoRealizado(indice);
+        System.out.println("------Eliminar paso------");
         //Si el paso contaba con documentación, la documentación también se elimina.
         if (getPasoSeleccionadoRealizado(indice).getDocumento() != null && !"".equals(getPasoSeleccionadoRealizado(indice).getDocumento())) {
             File path = new File(getPasoSeleccionadoRealizado(indice).getDocumento());
             path.delete();
         }
         if (pEliminar.getRepeticion() != 0) {
+            pEliminar.setDocumento(null);
+            pEliminar.setFechaRealizacion(null);
             pEliminar.setRealizado(false);
             pEliminar.setCambio(true);
+            System.out.println(">>>>PasoEsp: " + pEliminar.getNombrePaso() + " - id: " + pEliminar.getIdPasoEsp());
         } else {
+            System.out.println(">>>>PasoEsp indefinido: " + pEliminar.getNombrePaso() + " - id: " + pEliminar.getIdPasoEsp());
             ventanaPrincipal.getLista().getPasosBasura().add(pEliminar);
             pasosModificados.remove(pEliminar);
         }
@@ -641,7 +646,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                     String[] val = new String[1];
                     val[0] = p.getEstado();
                     tramiteEspecifico.modificarCampo(tramiteEspecifico.obtenerCampo(posicion), val);
-                    tramiteEspecifico.setCambio(true);
+                    tramiteEspecifico.setCambioEstado(true);
                 }
                 int contador = 0;
                 for (PasoEspecifico pe1 : pasosModificados) {
@@ -660,7 +665,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
                         indice2++;
                     }
                     tramiteEspecifico.modificarCampo(tramiteEspecifico.obtenerCampo(posicion), opciones);
-                    tramiteEspecifico.setCambio(true);
+                    tramiteEspecifico.setCambioEstado(true);
                 }
             }
         }
@@ -1008,10 +1013,12 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
      * @author Cresencio
      */
     public void realizarPaso(int indice) {
+        System.out.println("-------Realizar paso------");
         Date d = new Date(fechaChooser.getDate().getTime());
         PasoEspecifico pe = getPasoSeleccionadoSinRealizar(indice);
         System.out.println("Repeticiones del paso " + pe.getNombrePaso() + " Numero de veces " + pe.getRepeticion());
         if (pe.getRepeticion() > 0) {
+            System.out.println(">>>PasoEsp: " + pe.getNombrePaso() + " - id: " + pe.getIdPasoEsp());
             pe.setRealizado(true);
             pe.setFechaRealizacion(d);
             pe.setDocumento(datoEspecifico.getText());
@@ -1022,6 +1029,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
         //a pasos realizados para manejarlo de forma independiente y evitar sobreescritura.
         if (pe.getRepeticion() == 0) {
             PasoEspecifico pNuevo = new PasoEspecifico();
+            System.out.println(">>>PasoEsp indefinido: " + pe.getNombrePaso() + " - id: " + pe.getIdPasoEsp());
             pNuevo.setNombrePaso(pe.getNombrePaso());
             pNuevo.setNumPaso(pe.getNumPaso());
             pNuevo.setRealizado(true);
@@ -1033,7 +1041,7 @@ public class DialogoSeguimiento extends JDialog implements ActionListener {
             pNuevo.setCambio(false);
             pasosModificados.add(pNuevo);
         }
-        tramiteEspecifico.setCambio(true);
+        tramiteEspecifico.setCambioEstado(true);
         ocultarElementos();
     }
 
