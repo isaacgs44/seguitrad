@@ -22,7 +22,6 @@ import lib.JIntegerTextField;
 import com.toedter.calendar.JDateChooser;
 
 import dominio.Campo;
-import dominio.Paso;
 import dominio.PasoEspecifico;
 import dominio.Tramite;
 import dominio.TramiteEspecifico;
@@ -117,10 +116,6 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
         this.ventanaPrincipal = ventanaPrincipal;
         this.tramiteEspecifico = tramiteEspecifico;
         posicion = ventanaPrincipal.getLista().getListaTramitesEsp().lastIndexOf(this.tramiteEspecifico);
-
-        System.out.println("posicion :" + posicion);
-        System.out.println("tamaño lista cargada : " + ventanaPrincipal.getLista().getListaTramitesEsp().size());
-
         aceptarBoton = new JButton("Aceptar");
         aceptarBoton.setBounds(240, 640, 150, 35);
         aceptarBoton.addActionListener(this);
@@ -134,8 +129,7 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
         cancelarBoton.setIcon(new ImageIcon(getClass().getResource(
                 "/imagenes/cancelar.png")));
         add(cancelarBoton);
-
-        panelCampo = new PanelCampo(tramite.getCampos(), this.tramiteEspecifico.getValores());
+        panelCampo = new PanelCampo(this.tramiteEspecifico.getCampos(), this.tramiteEspecifico.getValores());
         scrollCampo = new JScrollPane(panelCampo);
         scrollCampo.setBounds(50, 10, 920, 300);
         add(scrollCampo);
@@ -232,7 +226,8 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      * los campos es obligatorio y no se asigna ningún valor.
      */
     private void validar() throws TramiteEspecificoException {
-        ArrayList<Campo> campos = tramite.getCampos();
+        //ArrayList<Campo> campos = tramite.getCampos();
+        ArrayList<Campo> campos = this.tramiteEspecifico.getCampos();
         ArrayList<Object> componentes = panelCampo.getComponentes();
         int index = 0;
         JTextField texto;
@@ -304,10 +299,9 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
      * Agrega el trámite específico a la lista de trámites. </p>
      */
     private void guardarValores() {
-        ArrayList<Campo> campos = tramite.getCampos();
-        ArrayList<Paso> pasos = tramite.getPasos();
+        //ArrayList<Campo> campos = tramite.getCampos();
+        ArrayList<Campo> campos = this.tramiteEspecifico.getCampos();
         ArrayList<Object> componentes = panelCampo.getComponentes();
-        ArrayList<JDateChooser> fechas = panelDetallesPaso.getComponentes();
         TramiteEspecifico tramiteEspecifico = new TramiteEspecifico();
         tramiteEspecifico.setIdTramite(this.tramiteEspecifico.getIdTramite());
         int index = 0;
@@ -361,26 +355,8 @@ public class DialogoModificarRegistro extends JDialog implements ActionListener 
             index++;
         }
         index = 0;
-        for (Paso p : pasos) {
-            for (int i = 1; i <= p.getRepeticion(); i++) {
-                PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                pasoEspecifico.setNombrePaso(p.getNombrePaso());
-                pasoEspecifico.setNumPaso(p.getNumPaso());
-                // Falta. crear la repetición de pasos 
-                pasoEspecifico.setRepeticion(p.getRepeticion());
-                pasoEspecifico.setRealizado(false);
-                pasoEspecifico.setFechaRealizacion(null);
-                pasoEspecifico.setDocumento("");
-                if (p.isObligatorio() && p.isConFechaLimite()) {
-                    fecha = fechas.get(index);
-                    pasoEspecifico.setFechaLimite(fecha.getDate());
-                    index++;
-                    System.out.println("Fechas almacenadas " + pasoEspecifico.getFechaLimite());
-                } else {
-                    pasoEspecifico.setFechaLimite(null);
-                }
-                tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
-            }
+        for (PasoEspecifico pe : this.tramiteEspecifico.getPasosEspecificos()) {
+            tramiteEspecifico.agregarPasoEspecifico(pe);
         }
         tramiteEspecifico.setModificar(true);
         ventanaPrincipal.getLista().getListaTramitesEsp().set(posicion, tramiteEspecifico);

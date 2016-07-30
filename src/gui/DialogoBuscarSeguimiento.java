@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 public class DialogoBuscarSeguimiento extends JDialog implements ActionListener {
 
@@ -47,8 +48,12 @@ public class DialogoBuscarSeguimiento extends JDialog implements ActionListener 
             dispose();
         } else if (e.getSource().equals(seguimientoBoton)) {
             //new DialogoSeguimiento(ventanaPrincipal, ventanaPrincipal.getLista().getListaTramitesEsp().get(panelBuscar.getTramiteSeleccionado().getIdTramite()));
-            new DialogoSeguimiento(ventanaPrincipal, panelBuscar.getTramiteSeleccionado());
-            panelBuscar.buscar("", "");
+            if (panelBuscar.getTramiteSeleccionado() != null) {
+                new DialogoSeguimiento(ventanaPrincipal, panelBuscar.getTramiteSeleccionado());
+                panelBuscar.buscar("", "");
+            } else {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar un registro", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

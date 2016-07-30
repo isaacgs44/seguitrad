@@ -55,9 +55,7 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
      * Agrega el panel buscar y los botones que se visualizan en la ventana.
      * </p>
      *
-     * @param ventanaPrincipal. Referencia a la clase
      * <code>VentanaPrincipal</code>
-     * @see #ventanaPrincipal.
      */
     public DialogoEliminarRegistro(VentanaPrincipal ventanaPrincipal) {
         super(ventanaPrincipal, "Buscar registro", true);
@@ -97,6 +95,16 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
         if (e.getSource().equals(cerrarBoton)) {
             dispose();
         } else if (e.getSource().equals(eliminarRegistroBoton)) {
+            eliminarTramite();
+        }
+
+    }
+
+    /**
+     * Método para eliminar el registro de un trámite específico.
+     */
+    public void eliminarTramite() {
+        if (panelBuscar.getTramiteSeleccionado() != null) {
             int respuesta = JOptionPane.showConfirmDialog(this,
                     "¿Está seguro de que desea eliminar el registro del trámite?", "Advertencia",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -121,7 +129,6 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
                         ventanaPrincipal.getLista().getTramitesBasura().add(ventanaPrincipal.getLista().getListaTramitesEsp().get(index));
                         ventanaPrincipal.getLista().getListaTramitesEsp().remove(index);
                         ventanaPrincipal.getLista().setHayCambios(true);
-                        System.out.println("File Seleccionada : " + panelBuscar.obtenerFilaSeleccionada());
                         panelBuscar.eliminarFilaSeleccionada(panelBuscar.obtenerFilaSeleccionada());
                         panelBuscar.buscar("", "");
                         JOptionPane.showMessageDialog(this, "Registro eliminado exitosamente",
@@ -143,7 +150,8 @@ public class DialogoEliminarRegistro extends JDialog implements ActionListener {
             } else if (respuesta == JOptionPane.NO_OPTION) {
                 dispose();
             }
+        } else {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un registro", "Error", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 }

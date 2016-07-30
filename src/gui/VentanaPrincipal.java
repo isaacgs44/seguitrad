@@ -1,11 +1,7 @@
 package gui;
 
-import dominio.Campo;
 import javax.swing.*;
-
 import dominio.ListaTramites;
-import dominio.PasoEspecifico;
-import dominio.TramiteEspecifico;
 import excepcion.BaseDatosException;
 import excepcion.TramiteException;
 
@@ -13,9 +9,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class VentanaPrincipal extends JFrame implements ActionListener {
 
@@ -178,15 +171,8 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
-
             public void windowClosing(WindowEvent e) {
-                try {
-                    salir();
-                } catch (BaseDatosException ex) {
-                    ex.printStackTrace();
-                } catch (SQLException ex) {
-                    Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                salir();
             }
         });
         setLocationRelativeTo(null);
@@ -194,18 +180,13 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
         setVisible(true);
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(nuevoTramiteMenu)) {
             new DialogoNuevoTramite(this);
             establecerTitulo();
         } else if (e.getSource().equals(abrirTramiteMenu)) {
-            try {
-                abrirTramite();
-            } catch (BaseDatosException ex) {
-                ex.printStackTrace();
-            } catch (SQLException ex) {
-                Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            abrirTramite();
         } else if (e.getSource().equals(guardarTramiteMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Guardar trámite", JOptionPane.ERROR_MESSAGE);
@@ -213,147 +194,142 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
                 try {
                     lista.guardarArchivo();
                     JOptionPane.showMessageDialog(this, "Cambios guardados exitosamente", "Aviso", JOptionPane.INFORMATION_MESSAGE);
-                } catch (BaseDatosException ex) {
-                } catch (SQLException ex) {
-                    Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                    establecerTitulo();
+                } catch (BaseDatosException | SQLException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Error en base de datos", JOptionPane.ERROR_MESSAGE);
                 }
-                establecerTitulo();
             }
         } else if (e.getSource().equals(guardarTramiteComoMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Guardar trámite como", JOptionPane.ERROR_MESSAGE);
             } else {
-                lista.guardarArchivoComo();
-                establecerTitulo();
+                try {
+                    String nombreNuevo = (String) JOptionPane.showInputDialog(this, "Introduzca el nombre para guardar el archivo",
+                            "Guardar como ", JOptionPane.QUESTION_MESSAGE);
+                    if (lista.guardarArchivoComo(nombreNuevo)) {
+                        JOptionPane.showMessageDialog(this, "El archivo ya existe,\nelija un nombre diferente", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Esta operacion puede durar algunos segundos\n"
+                                + "dependiendo de la cantidad y tamaño de los archivos del trámite.\n", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                        lista.guardarArchivoComo(nombreNuevo);
+                        establecerTitulo();
+                    }
+                } catch (BaseDatosException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Error  en base de datos", JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                //lista.guardarArchivoComo();
             }
-        } else if (e.getSource().equals(modificarTramiteMenu)) {
+        } else if (e.getSource()
+                .equals(modificarTramiteMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Modificar trámite", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoModificarTramite(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(propiedadesMenu)) {
+        } else if (e.getSource()
+                .equals(propiedadesMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Propiedades", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoPropiedades(this);
             }
-        } else if (e.getSource().equals(cerrarTramiteMenu)) {
+        } else if (e.getSource()
+                .equals(cerrarTramiteMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Cerrar trámite", JOptionPane.ERROR_MESSAGE);
             } else {
-                try {
-                    cerrarTramite();
-                } catch (BaseDatosException ex) {
-                    ex.printStackTrace();
-                } catch (SQLException ex) {
-                    Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                cerrarTramite();
             }
         } else if (e.getSource().equals(salirMenu)) {
-            try {
-                salir();
-            } catch (BaseDatosException ex) {
-                ex.printStackTrace();
-            } catch (SQLException ex) {
-                Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else if (e.getSource().equals(seguimientoMenu)) {
+            salir();
+        } else if (e.getSource()
+                .equals(seguimientoMenu)) {
             if (lista.getTramite() == null || lista.getListaTramitesEsp().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto o \nno existen trámites específicos almacenados", "Seguimiento", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoBuscarSeguimiento(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(nuevoRegistroMenu)) {
+        } else if (e.getSource()
+                .equals(nuevoRegistroMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Nuevo registro", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoNuevoRegistro(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(modificarRegistroMenu)) {
+        } else if (e.getSource()
+                .equals(modificarRegistroMenu)) {
             if (lista.getTramite() == null || lista.getListaTramitesEsp().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto o \nno existen trámites específicos almacenados", "Modificar registro", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoBuscarModificar(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(eliminarRegistroMenu)) {
+        } else if (e.getSource()
+                .equals(eliminarRegistroMenu)) {
             if (lista.getTramite() == null || lista.getListaTramitesEsp().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto o \nno existen trámites específicos almacenados", "Eliminar registro", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoEliminarRegistro(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(nuevasAlertasMenu)) {
+        } else if (e.getSource()
+                .equals(nuevasAlertasMenu)) {
             if (lista.getListaTramitesEsp().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No existen trámites específicos almacenados", "Nuevas alertas", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoNuevasAlertas(this);
             }
-        } else if (e.getSource().equals(tramitesInconclusosMenu)) {
+        } else if (e.getSource()
+                .equals(tramitesInconclusosMenu)) {
             if (lista.getListaTramitesEsp().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No existen trámites específicos almacenados", "Trámites inconclusos", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoTramitesInconclusos(this);
             }
-        } else if (e.getSource().equals(nuevasConsultaMenu)) {
+        } else if (e.getSource()
+                .equals(nuevasConsultaMenu)) {
             if (lista.getTramite() == null) {
                 JOptionPane.showMessageDialog(this, "No hay ningún trámite abierto", "Nueva consulta", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoNuevaConsulta(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(abrirConsultaMenu)) {
+        } else if (e.getSource()
+                .equals(abrirConsultaMenu)) {
             if (lista.getListaConsultas().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No existen consultas almacenadas", "Abrir consulta", JOptionPane.ERROR_MESSAGE);
             } else {
                 new DialogoAbrirConsulta(this);
                 establecerTitulo();
             }
-        } else if (e.getSource().equals(verManualMenu)) {
+        } else if (e.getSource()
+                .equals(verManualMenu)) {
             verManual();
-        } else if (e.getSource().equals(acercaDeMenu)) {
+        } else if (e.getSource()
+                .equals(acercaDeMenu)) {
             mostrarInformacionSistema();
         }
     }
 
     /**
-     * 
+     *
      */
-    private void abrirTramite() throws BaseDatosException, SQLException {
+    private void abrirTramite() {
         if (lista.getTramite() != null) {
             JOptionPane.showMessageDialog(this,
                     "Debe cerrar el trámite que esta abierto actualmente.", "Seguitrad UMAR",
                     JOptionPane.YES_OPTION);
-            }
-    
+        }
+
         if (lista.getTramite() == null) {
             try {
-                lista.abrirArchivo();                             
-                System.out.println("tramite: " + lista.getTramite().getNombreTramite());
-                System.out.println("Archivo: " + lista.getTramite().getNombreArchivo());
-                ArrayList<TramiteEspecifico> listaTramitesEsp = lista.getListaTramitesEsp();
-                
-                for(TramiteEspecifico t : listaTramitesEsp){
-                    System.out.println("idTramite" + t.getIdTramite());
-                    ArrayList<PasoEspecifico> pasosEspecificos = t.getPasosEspecificos();
-                    System.out.println("----------PASOS----------");
-                    System.out.println("Tamaño lista pasos "+pasosEspecificos.size());
-                    for (int z = 0;  z < pasosEspecificos.size(); z++) {
-                        PasoEspecifico p = pasosEspecificos.get(z);
-                        System.out.println("id: " + p.getIdPasoEsp());
-                        System.out.println("Nombre: " + p.getNombrePaso());
-                        System.out.println("Documento: " + p.getDocumento());
-                        System.out.println("Fecha_Límite: " + p.getFechaLimite());
-                        System.out.println("Realización: " + p.getFechaRealizacion());
-                        System.out.println("Repeticion: "+ p.getRepeticion());
-                    }
-                    
-                }
-                
+                lista.abrirArchivo();
+
                 establecerTitulo();
             } catch (TramiteException e1) {
                 JOptionPane.showMessageDialog(this, e1.getMessage(), e1.getTitulo(), JOptionPane.ERROR_MESSAGE);
@@ -366,16 +342,22 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     * 
+     *
      */
-    private void cerrarTramite() throws BaseDatosException, SQLException {
+    private void cerrarTramite() {
         if (getTitle().startsWith("*")) {
             int respuesta = JOptionPane.showConfirmDialog(this,
                     "¿Desea guardar los cambios en el sistema?"
                     + "\nSi elige \"No\" se perderán los cambios realizados.", "Seguitrad UMAR",
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
             if (respuesta == JOptionPane.YES_OPTION) {
-                lista.guardarArchivo();
+                try {
+                    lista.guardarArchivo();
+                } catch (BaseDatosException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getTitulo(), JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Error en base de datos", JOptionPane.ERROR_MESSAGE);
+                }
             } else if (respuesta == JOptionPane.CANCEL_OPTION) {
                 return;
             }
@@ -385,17 +367,23 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     * 
+     *
      */
-    private void salir() throws BaseDatosException, SQLException {
+    private void salir() {
         if (getTitle().startsWith("*")) {
             int respuesta = JOptionPane.showConfirmDialog(this,
                     "¿Desea guardar los cambios en el sistema?"
                     + "\nSi elige \"No\" se perderán los cambios realizados.", "Seguitrad UMAR",
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
             if (respuesta == JOptionPane.YES_OPTION) {
-                lista.guardarArchivo();
-                System.exit(0);
+                try {
+                    lista.guardarArchivo();
+                    System.exit(0);
+                } catch (BaseDatosException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getTitulo(), JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Error en base de datos", JOptionPane.ERROR_MESSAGE);
+                }
             } else if (respuesta == JOptionPane.NO_OPTION) {
                 System.exit(0);
             }
@@ -405,7 +393,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     * 
+     *
      */
     private void mostrarInformacionSistema() {
         JOptionPane.showMessageDialog(this, "Software para control de seguimiento de trámites administrativos"
@@ -420,7 +408,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
     }
 
     /**
-     * 
+     *
      */
     private void verManual() {
         File path = new File("manual.pdf");

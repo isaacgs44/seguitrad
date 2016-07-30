@@ -4,11 +4,9 @@ import java.util.ArrayList;
 
 import excepcion.BaseDatosException;
 import basedatos.BaseDatos;
-import java.sql.SQLException;
-import java.util.Date;
 import java.text.DateFormat;
-import java.util.StringTokenizer;
-import javax.swing.table.DefaultTableModel;
+import java.text.ParseException;
+import java.util.Date;
 
 public class Consulta implements Comparable<Consulta> {
 
@@ -16,17 +14,12 @@ public class Consulta implements Comparable<Consulta> {
     private ArrayList<Campo> campos;
     private ArrayList<String[]> valores;
     private ArrayList<TramiteEspecifico> tramitesEncontrados;
-    private DefaultTableModel modelo;
     private boolean nuevo;
-    private final String[] columnNames = {"Nombre", "Título",
-        "Fecha de inicio", "Fecha de fin", "Estado"};
 
     public Consulta() {
         nombreConsulta = "";
         campos = new ArrayList<>();
         valores = new ArrayList<>();
-        Object[][] data = {};
-        modelo = new DefaultTableModel(data, columnNames);
         nuevo = false;
     }
 
@@ -83,6 +76,7 @@ public class Consulta implements Comparable<Consulta> {
      * @param bd - objeto que tiene activa la conexión
      * @see Campo#getNombreCampo()
      * @throws excepcion.BaseDatosException
+     * @author isaac Garay
      */
     public void insertarConsulta(BaseDatos bd) throws BaseDatosException {
         String nombreCampo;
@@ -98,172 +92,159 @@ public class Consulta implements Comparable<Consulta> {
     }
 
     /**
-     * Método que ejecuta la consulta para reconocer los trámites específicos
-     * con los que coinciden los criterios de búsqueda y los agrega a un
-     * TableModel
+     * Busca en la lista de trámites específicos los trámites que coincidan con
+     * los criterios.
      *
      * @param listaTramitesEsp objeto con la lista completa de trámites
      * específicos
      *
-     * @see #validar(dominio.TramiteEspecifico, java.util.ArrayList)
-     * @see Campo#getNombreCampo()
-     * @see #getCadenaValores(java.lang.Object[])
+     * @see #validar(dominio.TramiteEspecifico, java.util.ArrayList, java.util.ArrayList) 
      * @see TramiteEspecifico#buscarCampo(java.lang.String)
      * @see TramiteEspecifico#obtenerValores(int)
      *
-     * @return TableModel para llenar el TableModel con los resultados de la
-     * consulta
+     * @return Lista de trámites que coincidieron con los criterios de búsqueda.
      *
-     * @throws excepcion.BaseDatosException
-     * @throws java.sql.SQLException
-     *
-     * @autor isaac
+     * @author isaac Garay
      */
-    public DefaultTableModel ejecutarConsulta(ArrayList<TramiteEspecifico> listaTramitesEsp) throws BaseDatosException, SQLException {
-        System.out.println("---------------------------Ejecutamos Consulta-----------------------------");
+    public ArrayList<TramiteEspecifico> ejecutarConsulta(ArrayList<TramiteEspecifico> listaTramitesEsp) {
         int posicion;
-        ArrayList<String[]> datosTabla = new ArrayList<>();
-        Object[][] data = null;
         String nombreCampo;
         String valorBuscar;
         int limite;
         tramitesEncontrados = new ArrayList<>();
-        ArrayList<Boolean> resultado = new ArrayList<>(); // arreglo para comprobar los criterios de búsqueda
+        ArrayList<Boolean> resultado = new ArrayList<>(); // arreglo para comprobar los criterios de bÃºsqueda
+        ArrayList<Boolean> resultadoRepetidos = new ArrayList<>(); // arreglo para comprobar los criterios de bÃºsqueda
+        ArrayList<String> camposAnalizados = new ArrayList<>();
+
         for (TramiteEspecifico t : listaTramitesEsp) {
             resultado.clear();
+            resultadoRepetidos.clear();
             for (int i = 0; i < campos.size(); i++) {
-                nombreCampo = campos.get(i).getNombreCampo();
-                valorBuscar = getCadenaValores(valores.get(i));
+                nombreCampo = campos.get(i).getNombreCampo(); // nombre del campo en criterio
+                valorBuscar = getCadenaValores(valores.get(i)); // valor del criterio
                 posicion = t.buscarCampo(nombreCampo);
-                String[] valor = t.obtenerValores(posicion);
+                String[] valorRegistro = t.obtenerValores(posicion); // valor de cada registro
 
                 switch (campos.get(i).getTipo()) {
+                    case TEXTO:
+                        if (criterioRepetido(nombreCampo)) {
+                            if (valorRegistro[0].contains(valorBuscar)) {
+                                resultadoRepetidos.add(true);
+                            } else {
+                                resultadoRepetidos.add(false);
+                            }
+                        } else if (valorRegistro[0].contains(valorBuscar)) {
+                            resultado.add(true);
+                        } else {
+                            resultado.add(false);
+                        }
+                        break;
                     case FECHA:
                         limite = valorBuscar.indexOf("/");
                         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
-                        Date fechaV = obtenerFecha(valor[0]);
-                        Date fechaI;
-                        Date fechaS;
-                        String fechaInferior;
-                        String fechaSuperior;
+                        Date fechaV = null;
+                        Date fechaI = null;
+                        Date fechaS = null;
                         try {
-                            fechaInferior = formato.format(Long.parseLong(valorBuscar.substring(0, limite - 1)));
-                            fechaI = obtenerFecha(fechaInferior);
+                            fechaV = formato.parse(valorRegistro[0]);
+                        } catch (ParseException ex) {
+                        }
+                        try {
+                            String fechaInicial = formato.format(new Date(Long.parseLong(valorBuscar.substring(0, limite - 1))));
+                            try {
+                                fechaI = formato.parse(fechaInicial);
+                            } catch (ParseException ex) {
+                            }
                         } catch (NumberFormatException e) {
                             fechaI = fechaV;
-                            fechaInferior = formato.format(fechaV);
                         }
                         try {
-                            fechaSuperior = formato.format(Long.parseLong(valorBuscar.substring(limite + 2)));
-                            fechaS = obtenerFecha(fechaSuperior);
+                            String fechaSuperior = formato.format(new Date(Long.parseLong(valorBuscar.substring(limite, valorBuscar.length()))));
+                            try {
+                                fechaS = formato.parse(fechaSuperior);
+                            } catch (ParseException ex) {
+                            }
                         } catch (NumberFormatException e) {
                             fechaS = fechaV;
-                            fechaSuperior = formato.format(fechaV);
                         }
-                        System.out.println("fecha I: " + fechaI);
-                        System.out.println("fecha S: " + fechaS);
-                        System.out.println("fecha Registro: " +fechaV);
-
-                       // if ((fechaV.before(fechaS) && fechaV.after(fechaI)) || valor[0].equals(fechaInferior) || valor[0].equals(fechaSuperior)) {
-                        if (fechaV.compareTo(fechaS)<=0 && fechaV.compareTo(fechaI)>=0) {
-                            resultado.add(Boolean.TRUE);
-                            System.out.println(">>resultado : true");
-                        } else {
-                            resultado.add(Boolean.FALSE);
-                            System.out.println(">>resultado : false");
+                        if (fechaV != null) {
+                            if (criterioRepetido(nombreCampo)) {
+                                if (fechaV.compareTo(fechaS) <= 0 && fechaV.compareTo(fechaI) >= 0) {
+                                    resultadoRepetidos.add(true);
+                                } else {
+                                    resultadoRepetidos.add(false);
+                                }
+                            } else if (fechaV.compareTo(fechaS) <= 0 && fechaV.compareTo(fechaI) >= 0) {
+                                resultado.add(true);
+                            } else {
+                                resultado.add(false);
+                            }
                         }
                         break;
                     case NUMERO:
-                        System.out.println("Valor a buscar: " + valorBuscar);
                         limite = valorBuscar.indexOf("/");
-                        int num = Integer.parseInt(valor[0]);
+                        int num = Integer.parseInt(valorRegistro[0]);
                         int mayor;
                         int menor;
                         try {
                             menor = Integer.parseInt(valorBuscar.substring(0, limite - 1));
-                            System.out.println("menor: " + menor);
                         } catch (NumberFormatException e) {
                             menor = num;
                         }
                         try {
                             mayor = Integer.parseInt(valorBuscar.substring(limite + 2));
-                            System.out.println("mayor: " + mayor);
 
                         } catch (NumberFormatException e) {
                             mayor = num;
                         }
 
-                        if (num >= menor && num <= mayor) {
-                            resultado.add(Boolean.TRUE);
+                        if (criterioRepetido(nombreCampo)) {
+                            if (num >= menor && num <= mayor) {
+                                resultadoRepetidos.add(true);
+                            } else {
+                                resultadoRepetidos.add(false);
+                            }
+                        } else if (num >= menor && num <= mayor) {
+                            resultado.add(true);
                         } else {
-                            resultado.add(Boolean.FALSE);
-                        }
-                        break;
-                    case TEXTO:
-                        if (valor[0].contains(valorBuscar)) {
-                            resultado.add(Boolean.TRUE);
-                        } else {
-                            resultado.add(Boolean.FALSE);
+                            resultado.add(false);
                         }
                         break;
                     case OPCMULT:
-                        if (valor[0].contains(valorBuscar)) {
-                            resultado.add(Boolean.TRUE);
+                        if (criterioRepetido(nombreCampo)) {
+                            if (valorRegistro[0].equals(valorBuscar)) {
+                                resultadoRepetidos.add(true);
+                            } else {
+                                resultadoRepetidos.add(false);
+                            }
+                        } else if (valorRegistro[0].equals(valorBuscar)) {
+                            resultado.add(true);
                         } else {
-                            resultado.add(Boolean.FALSE);
+                            resultado.add(false);
                         }
                         break;
                     case OPCEXCL:
-                        if (valor[0].contains(valorBuscar)) {
-                            resultado.add(Boolean.TRUE);
+                        if (criterioRepetido(nombreCampo)) {
+                            if (valorRegistro[0].contains(valorBuscar)) {
+                                resultadoRepetidos.add(true);
+                            } else {
+                                resultadoRepetidos.add(false);
+                            }
+                        } else if (valorRegistro[0].contains(valorBuscar)) {
+                            resultado.add(true);
                         } else {
-                            resultado.add(Boolean.FALSE);
+                            resultado.add(false);
                         }
                         break;
                 }
+                camposAnalizados.add(nombreCampo);
             }
-
-            if (validar(t, resultado)) {
-                datosTabla.add(valoresTramite(t));
+            camposAnalizados.clear();
+            if (validar(t, resultado, resultadoRepetidos)) {
+                tramitesEncontrados.add(t);
             }
         }
-
-        //creamos TableModel
-        data = new Object[datosTabla.size()][5];
-        for (int i = 0; i < datosTabla.size(); i++) {
-            data[i] = datosTabla.get(i);
-        }
-        modelo = new DefaultTableModel(data, columnNames);
-        return modelo;
-
-    }
-
-    /**
-     * Guarda en un arreglo los valores de un trámite específico y lo añade a la
-     * lista de trámites encontrados
-     *
-     * @param t - trámite específico
-     * @return Arreglo con datos del trámite específico
-     * @see TramiteEspecifico#obtenerValores(int)
-     * @see TramiteEspecifico#buscarCampo(java.lang.String)
-     *
-     */
-    private String[] valoresTramite(TramiteEspecifico t) {
-        int index;
-
-        String[] valores = new String[5];
-        index = t.buscarCampo("Nombre del solicitante");
-        valores[0] = t.obtenerValores(index)[0];
-        index = t.buscarCampo("Título");
-        valores[1] = t.obtenerValores(index)[0];
-        index = t.buscarCampo("Fecha de inicio");
-        valores[2] = t.obtenerValores(index)[0];
-        index = t.buscarCampo("Fecha de fin");
-        valores[3] = t.obtenerValores(index)[0];
-        index = t.buscarCampo("Estado");
-        valores[4] = t.obtenerValores(index)[0];
-        tramitesEncontrados.add(t);
-        return valores;
+        return tramitesEncontrados;
     }
 
     private String getCadenaValores(Object[] arreglo) {
@@ -294,42 +275,47 @@ public class Consulta implements Comparable<Consulta> {
     }
 
     /**
-     * Método para validar si un trámite se agrega a la tabla cuando se ejecuta
-     * una consulta
+     * Validar si un trámite cumple con los criterios. Analiza los resultados
+     * booleanos de cada comparacion con los criterios de búsqueda en un trámite
+     * específico.
      *
-     * @param t - trámite que se esta comprobando
-     * @param resultado - lista que contiene los valores booleanos de cada
-     * comparación con los criterios de búsqueda
+     * @param t Trámite que se esta comprobando
+     * @param resultado Lista que contiene los valores booleanos de cada
+     * comparación con los criterios de búsqueda que no se repiten
+     * @param resultadoRepetidos Lista que contiene los valores booleanos de
+     * cada comparación con los criterios de búsqueda que se repiten (con
+     * valores distintos)
      *
-     * @return - valor que define si el trámite se agregará a la tabla
-     * @see TramiteEspecifico#getIdTramite()
-     * @autor isaac
+     * @return valor que define si el trámite se agregará a la tabla
+     *
+     * @autor isaac Garay
      *
      */
-    private boolean validar(TramiteEspecifico t, ArrayList<Boolean> resultado) {
-        boolean agregar = true;
-        for (Boolean b : resultado) { //comprobamos que el tramite coincida con todos los criterios
-            agregar = agregar && b;
+    private boolean validar(TramiteEspecifico t, ArrayList<Boolean> resultado, ArrayList<Boolean> resultadoRepetidos) {
+        boolean agregar;
+        boolean agregarRep = false;
+        if (resultado.size() == 0) { // si sólo hay criterios repetidos
+            agregar = false;
+        } else { // hay criterios que no se repiten
+            agregar = true;
         }
-
+        for (Boolean b : resultado) { //comprobamos que el tramite coincida con todos los criterios que no se repiten
+            agregar &= b;
+        }
+        for (Boolean b : resultadoRepetidos) { //comprobamos que el tramite coincida con al menos un criterio de los que se repiten
+            agregarRep |= b;
+        }
+        if (resultado.size() == 0) { //si no hay criteirios que no se repitan
+            agregar = agregarRep;
+        } else if (resultadoRepetidos.size() > 0) { // si existen criterios repetidos
+            agregar &= agregarRep;
+        }
         for (TramiteEspecifico tramite : tramitesEncontrados) { // comprobamos que el tramite no exista actualmente en la tabla
             if (tramite.getIdTramite() == t.getIdTramite()) {
                 agregar = false;
             }
         }
         return agregar;
-    }
-
-    private Date obtenerFecha(String fecha) {
-        System.out.println("Fecha: " + fecha);
-        StringTokenizer tokens = new StringTokenizer(fecha, "/");
-        String[] datos = new String[tokens.countTokens()];
-        int i = 0;
-        while (tokens.hasMoreTokens()) {
-            datos[i] = tokens.nextToken().trim();
-            i++;
-        }
-        return new Date(Integer.parseInt(datos[2]) - 1900, Integer.parseInt(datos[1]) - 1, Integer.parseInt(datos[0]));
     }
 
     public boolean isNuevo() {
@@ -339,4 +325,95 @@ public class Consulta implements Comparable<Consulta> {
     public void setNuevo(boolean nuevo) {
         this.nuevo = nuevo;
     }
+
+    public ArrayList<Campo> getCampos() {
+        return campos;
+    }
+
+    public void setCampos(ArrayList<Campo> campos) {
+        this.campos = campos;
+    }
+
+    public ArrayList<String[]> getValores() {
+        return valores;
+    }
+
+    public void setValores(ArrayList<String[]> valores) {
+        this.valores = valores;
+    }
+
+    public ArrayList<TramiteEspecifico> getTramitesEncontrados() {
+        return tramitesEncontrados;
+    }
+
+    public void setTramitesEncontrados(ArrayList<TramiteEspecifico> tramitesEncontrados) {
+        this.tramitesEncontrados = tramitesEncontrados;
+    }
+
+    /**
+     * Determina si existen criterios repetidos en una consulta. Obtiene un
+     * arreglo con los nombres de los criterios que se repiten en una consulta
+     *
+     * @return arreglo con los nombres de los criterios repetidos, devuelve null
+     * si no estan repetidos.
+     *
+     * @autor isaac Garay
+     *
+     */
+    private ArrayList<String> obtenerCriteriosRepetidos() {
+        ArrayList<String> camposRepetidos = new ArrayList<>();
+        String nombreCampo;
+        boolean repetido = false;
+        boolean bandera;
+        for (int j = 0; j < campos.size(); j++) {
+            bandera = true;
+            nombreCampo = campos.get(j).getNombreCampo();
+            for (String s : camposRepetidos) {
+                if (s.equals(nombreCampo)) {
+                    bandera = false;
+                }
+            }
+            if (bandera) {
+                for (int k = j + 1; k < campos.size(); k++) {
+                    if (campos.get(k).getNombreCampo().equals(nombreCampo)) {
+                        camposRepetidos.add(nombreCampo);
+                        repetido = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (repetido) {
+            return camposRepetidos;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Determina si un campo en específico se encuentra repetido en los
+     * criterios de búsqueda.
+     *
+     * @param nombreCampo Nombre del campo que se desea analizar
+     * @return true si el campos se repite, false de lo contrario.
+     * @see #obtenerCriteriosRepetidos()
+     *
+     * @autor isaac Garay
+     *
+     */
+    private boolean criterioRepetido(String nombreCampo) {
+        ArrayList<String> criteriosRepetidos = obtenerCriteriosRepetidos();
+
+        if (criteriosRepetidos != null) {
+            for (String s : criteriosRepetidos) {
+                if (s.equals(nombreCampo)) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
+
 }

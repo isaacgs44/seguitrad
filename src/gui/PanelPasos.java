@@ -552,7 +552,6 @@ public class PanelPasos extends JPanel implements ActionListener, ItemListener {
                     panelTablaPasos.quitarFila(posicion);
                     secuencia.removeItem(paso);
                 } catch (TramiteException e1) {
-                    System.out.print("entra");
                     //En teoría no debe haber nunca una exception
                 }
             }

@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.ParseException;
 import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
@@ -29,12 +28,9 @@ import dominio.PasoEspecifico;
 import dominio.Tramite;
 import dominio.TramiteEspecifico;
 import excepcion.TramiteEspecificoException;
-import excepcion.TramiteException;
 import java.util.Date;
 import java.sql.SQLException;
 import java.text.DateFormat;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Guarda un nuevo trámite especifico.
@@ -163,15 +159,7 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
         if (e.getSource().equals(cancelarBoton)) {
             cancelar();
         } else if (e.getSource().equals(aceptarBoton)) {
-            try {
-                try {
-                    aceptar();
-                } catch (ParseException ex) {
-                } catch (TramiteException | SQLException ex) {
-                    Logger.getLogger(DialogoNuevoRegistro.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } catch (BaseDatosException ex) {
-            }
+            aceptar();
         }
     }
 
@@ -183,7 +171,7 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      * @see #validar()
      * @see #guardarValores()
      */
-    private void aceptar() throws BaseDatosException, ParseException, TramiteException, SQLException {
+    private void aceptar() {
         try {
             validar();
             guardarValores();
@@ -296,73 +284,74 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
      * trámites.
      * </p>
      */
-    private void guardarValores() throws BaseDatosException, ParseException, TramiteException, SQLException {
-        TramiteEspecifico tramiteEspecifico = new TramiteEspecifico(ventanaPrincipal.getLista().getBd());
-        ArrayList<TramiteEspecifico> listaTramiteEsp = ventanaPrincipal.getLista().getListaTramitesEsp();
-        ArrayList<Campo> campos = tramite.getCampos();
-        ArrayList<Paso> pasos = tramite.getPasos();
-        ArrayList<Object> componentes = panelCampo.getComponentes();
-        ArrayList<JDateChooser> fechas = panelDetallesPaso.getComponentes();
-        int index = 0;
-        int idTramite = 1;
-        if (listaTramiteEsp.size() > 0) {
-            TramiteEspecifico ultimoTramite = listaTramiteEsp.get((listaTramiteEsp.size() - 1));
-            idTramite = ultimoTramite.getIdTramite() + 1;
-        }
-        JTextField texto;
-        JDateChooser fecha;
-        JIntegerTextField numero;
-        JList<?> lista;
-        JComboBox<?> comboBox;
-        ListModel<?> modelo;
-        for (Campo c : campos) {
-            String[] valores = null;
-            switch (c.getTipo()) {
-                case FECHA:
-                    valores = new String[1];
-                    fecha = (JDateChooser) componentes.get(index);
-                    DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
-                    Date d = new Date(fecha.getDate().getTime());
-                    valores[0] = formato.format(d);
-                    break;
-                case NUMERO:
-                    valores = new String[1];
-                    numero = (JIntegerTextField) componentes.get(index);
-                    valores[0] = numero.getText();
-                    break;
-                case OPCEXCL:
-                    valores = new String[1];
-                    comboBox = (JComboBox<?>) componentes.get(index);
-                    valores[0] = (String) comboBox.getSelectedItem();
-                    break;
-                case OPCMULT:
-                    lista = (JList<?>) componentes.get(index);
-                    modelo = lista.getModel();
-                    int[] indices = lista.getSelectedIndices();
-                    valores = new String[1];
-                    valores[0] = "";
-                    for (int i = 0; i < indices.length; i++) {
-                        valores[0] += (String) modelo.getElementAt(indices[i]); // obtenemos los valores a partitr de los índices
-                        if (i != indices.length - 1) // mientras no sea el ultimo elemento, separamos con una "/".
-                        {
-                            valores[0] += " / ";
-                        }
-                    }
-                    break;
-                case TEXTO:
-                    valores = new String[1];
-                    texto = (JTextField) componentes.get(index);
-                    valores[0] = texto.getText();
-                    break;
+    private void guardarValores() {
+        try {
+            TramiteEspecifico tramiteEspecifico = new TramiteEspecifico(ventanaPrincipal.getLista().getBd());
+            ArrayList<TramiteEspecifico> listaTramiteEsp = ventanaPrincipal.getLista().getListaTramitesEsp();
+            ArrayList<Campo> campos = tramite.getCampos();
+            ArrayList<Paso> pasos = tramite.getPasos();
+            ArrayList<Object> componentes = panelCampo.getComponentes();
+            ArrayList<JDateChooser> fechas = panelDetallesPaso.getComponentes();
+            int index = 0;
+            int idTramite = 1;
+            if (listaTramiteEsp.size() > 0) {
+                TramiteEspecifico ultimoTramite = listaTramiteEsp.get((listaTramiteEsp.size() - 1));
+                idTramite = ultimoTramite.getIdTramite() + 1;
             }
-            tramiteEspecifico.agregarCampo(c, valores);
-            index++;
-        }
-        index = 0;
-        for (Paso p : pasos) {
+            JTextField texto;
+            JDateChooser fecha;
+            JIntegerTextField numero;
+            JList<?> lista;
+            JComboBox<?> comboBox;
+            ListModel<?> modelo;
+            for (Campo c : campos) {
+                String[] valores = null;
+                switch (c.getTipo()) {
+                    case FECHA:
+                        valores = new String[1];
+                        fecha = (JDateChooser) componentes.get(index);
+                        DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
+                        Date d = new Date(fecha.getDate().getTime());
+                        valores[0] = formato.format(d);
+                        break;
+                    case NUMERO:
+                        valores = new String[1];
+                        numero = (JIntegerTextField) componentes.get(index);
+                        valores[0] = numero.getText();
+                        break;
+                    case OPCEXCL:
+                        valores = new String[1];
+                        comboBox = (JComboBox<?>) componentes.get(index);
+                        valores[0] = (String) comboBox.getSelectedItem();
+                        break;
+                    case OPCMULT:
+                        lista = (JList<?>) componentes.get(index);
+                        modelo = lista.getModel();
+                        int[] indices = lista.getSelectedIndices();
+                        valores = new String[1];
+                        valores[0] = "";
+                        for (int i = 0; i < indices.length; i++) {
+                            valores[0] += (String) modelo.getElementAt(indices[i]); // obtenemos los valores a partitr de los índices
+                            if (i != indices.length - 1) // mientras no sea el ultimo elemento, separamos con una "/".
+                            {
+                                valores[0] += " / ";
+                            }
+                        }
+                        break;
+                    case TEXTO:
+                        valores = new String[1];
+                        texto = (JTextField) componentes.get(index);
+                        valores[0] = texto.getText();
+                        break;
+                }
+                tramiteEspecifico.agregarCampo(c, valores);
+                index++;
+            }
+            index = 0;
+            for (Paso p : pasos) {
                 for (int i = 1; i <= p.getRepeticion(); i++) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
-                    String nombre_paso= p.getRepeticion()==1 ? p.getNombrePaso():p.getNombrePaso()+" "+i;
+                    String nombre_paso = p.getRepeticion() == 1 ? p.getNombrePaso() : p.getNombrePaso() + " " + i;
                     pasoEspecifico.setNombrePaso(nombre_paso);
                     pasoEspecifico.setNumPaso(p.getNumPaso());
                     pasoEspecifico.setRepeticion(p.getRepeticion());
@@ -379,7 +368,7 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
                     pasoEspecifico.setIdPasoEsp(obtenerIdPasoEsp(tramiteEspecifico));
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
-                if(p.getRepeticion()==0){
+                if (p.getRepeticion() == 0) {
                     PasoEspecifico pasoEspecifico = new PasoEspecifico();
                     String nombre_paso = "*" + p.getNombrePaso();
                     pasoEspecifico.setNombrePaso(nombre_paso);
@@ -392,25 +381,32 @@ public class DialogoNuevoRegistro extends JDialog implements ActionListener {
                     pasoEspecifico.setIdPasoEsp(obtenerIdPasoEsp(tramiteEspecifico));
                     tramiteEspecifico.agregarPasoEspecifico(pasoEspecifico);
                 }
-               
+
+            }
+            tramiteEspecifico.setIdTramite(idTramite);
+            tramiteEspecifico.setNuevo(true);
+            ventanaPrincipal.getLista().setHayCambios(true);
+            ventanaPrincipal.getLista().agregarTramiteEspecifico(tramiteEspecifico);
+        } catch (BaseDatosException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getTitulo(), JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error en base de datos", JOptionPane.ERROR_MESSAGE);
         }
-        tramiteEspecifico.setIdTramite(idTramite);
-        tramiteEspecifico.setNuevo(true);
-        ventanaPrincipal.getLista().setHayCambios(true);
-        ventanaPrincipal.getLista().agregarTramiteEspecifico(tramiteEspecifico);
     }
 
-    public int obtenerIdPasoEsp(TramiteEspecifico tramiteEspecifico){
+    public int obtenerIdPasoEsp(TramiteEspecifico tramiteEspecifico) {
         int nuevoID = 0;
-        for(TramiteEspecifico t : this.ventanaPrincipal.getLista().getListaTramitesEsp()){
-            for(PasoEspecifico p : t.getPasosEspecificos()){
-                if(p.getIdPasoEsp() > nuevoID)
+        for (TramiteEspecifico t : this.ventanaPrincipal.getLista().getListaTramitesEsp()) {
+            for (PasoEspecifico p : t.getPasosEspecificos()) {
+                if (p.getIdPasoEsp() > nuevoID) {
                     nuevoID = p.getIdPasoEsp();
-    }
-}
-        for(PasoEspecifico p1 : tramiteEspecifico.getPasosEspecificos()){
-            if(p1.getIdPasoEsp() > nuevoID)
+                }
+            }
+        }
+        for (PasoEspecifico p1 : tramiteEspecifico.getPasosEspecificos()) {
+            if (p1.getIdPasoEsp() > nuevoID) {
                 nuevoID = p1.getIdPasoEsp();
+            }
         }
         nuevoID++;
         return nuevoID;

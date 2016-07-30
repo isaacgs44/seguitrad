@@ -3,8 +3,6 @@ package gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -52,9 +50,13 @@ public class DialogoBuscarModificar extends JDialog implements ActionListener {
         } else if (e.getSource().equals(modificarRegistroBoton)) {
             //FIXME trucado temporal para abrir un registro específico, la línea comentada es la buena
             //new DialogoModificarRegistro(ventanaPrincipal, ventanaPrincipal.getLista().getListaTramites().get(0));
-             new DialogoModificarRegistro(ventanaPrincipal, panelBuscar.getTramiteSeleccionado());
-             panelBuscar.buscar("", "");
-           
+            if (panelBuscar.getTramiteSeleccionado() != null) {
+                new DialogoModificarRegistro(ventanaPrincipal, panelBuscar.getTramiteSeleccionado());
+                panelBuscar.buscar("", "");
+            } else {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar un registro", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
         }
     }
 }

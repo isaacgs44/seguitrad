@@ -32,20 +32,23 @@ import dominio.PasoEspecifico;
  * trámite se va a modificar, se muestra la fecha que tiene asignado el paso
  * específico.
  * </p>
- * 
+ *
  * @author jesus
  *
  */
 public class PanelDetallesPaso extends JPanel {
 
+    /**
+     * Versión de serialización de clase.
+     */
     private static final long serialVersionUID = -4237362003682833331L;
     /**
      * Panel donde se visualizan los pasos de un trámite específico.
      */
     private JPanel panelContenedor;
     /**
-     * Guarda las fechas de los pasos específicos que tengan fecha límite y
-     * sean obligatorios.
+     * Guarda las fechas de los pasos específicos que tengan fecha límite y sean
+     * obligatorios.
      */
     private JDateChooser[] fecha;
     /**
@@ -67,9 +70,8 @@ public class PanelDetallesPaso extends JPanel {
      * Constructor que es utilizado cuando un trámite especifico es nuevo, los
      * radios botón están marcados en <Strong>No</strong>, y los campos fecha
      * están inhabilitados. Los valores de las fechas son nulas.
-     * 
-     * @param pasos
-     *            Pasos que contiene un trámite.
+     *
+     * @param pasos Pasos que contiene un trámite.
      */
     public PanelDetallesPaso(ArrayList<Paso> pasos) {
         this(pasos, null);
@@ -79,13 +81,12 @@ public class PanelDetallesPaso extends JPanel {
      * Constructor que es utilizado cuando el trámite específico se va a
      * modificar, muestra los valores que se le asignó a cada paso específico.
      * Manda a llamar al método <code>inicializar</code>.
-     * 
-     * 
-     * @param pasos
-     *            pasos que contiene un trámite.
-     * @param pasosEspecificos
-     *            pasos específicos que contiene un trámite específico.
-     * 
+     *
+     *
+     * @param pasos pasos que contiene un trámite.
+     * @param pasosEspecificos pasos específicos que contiene un trámite
+     * específico.
+     *
      * @see #inicializar()
      */
     public PanelDetallesPaso(ArrayList<Paso> pasos,
@@ -127,12 +128,12 @@ public class PanelDetallesPaso extends JPanel {
         componentes = new ArrayList<JDateChooser>();
         this.setLayout(new GridLayout(numeroPasosAMostrar, 1));
         for (Paso p : pasos) {
-            
+
             if (p.isObligatorio() && p.isConFechaLimite() && p.getRepeticion() >= 1) {
-                for (int i = 1; i <= p.getRepeticion();i++) {
+                for (int i = 1; i <= p.getRepeticion(); i++) {
                     panelContenedor = new JPanel();
                     panelContenedor.setLayout(new FlowLayout(FlowLayout.LEFT));
-                    String nombrePaso=(i==1)? p.getNombrePaso():p.getNombrePaso()+" "+i;
+                    String nombrePaso = (i == 1) ? p.getNombrePaso() : p.getNombrePaso() + " " + i;
                     imprimirLabels(nombrePaso);
                     imprimirLabels("Fecha límite");
                     radioBotonSi[index] = new JRadioButton("Sí");
@@ -164,14 +165,12 @@ public class PanelDetallesPaso extends JPanel {
                     if (pasosEspecificos == null) {
                         radioBotonNo[index].setSelected(true);
                         fecha[index].setDate(null);
+                    } else if (pasosEspecificos.get(p.getNumPaso()).getFechaLimite() == null) {
+                        radioBotonNo[index].setSelected(true);
+                        fecha[index].setDate(null);
                     } else {
-                        if (pasosEspecificos.get(index).getFechaLimite() == null) {
-                            radioBotonNo[index].setSelected(true);
-                            fecha[index].setDate(null);
-                        } else {
-                            radioBotonSi[index].setSelected(true);
-                            fecha[index].setDate(pasosEspecificos.get(index).getFechaLimite());
-                        }
+                        radioBotonSi[index].setSelected(true);
+                        fecha[index].setDate(pasosEspecificos.get(p.getNumPaso()).getFechaLimite());
                     }
                     panelContenedor.add(radioBotonSi[index]);
                     panelContenedor.add(fecha[index]);
@@ -186,7 +185,7 @@ public class PanelDetallesPaso extends JPanel {
 
     /**
      * Devuelve los componentes de un paso específico.
-     * 
+     *
      * @return Lista de componentes de un paso específico.
      */
     public ArrayList<JDateChooser> getComponentes() {
@@ -194,10 +193,10 @@ public class PanelDetallesPaso extends JPanel {
     }
 
     /**
-     * Agrega la etiqueta con el nombre del paso que se le asigna como parámetro.
-     * 
-     * @param nombrePaso
-     *            Nombre del paso con que se guardó en el trámite.
+     * Agrega la etiqueta con el nombre del paso que se le asigna como
+     * parámetro.
+     *
+     * @param nombrePaso Nombre del paso con que se guardó en el trámite.
      */
     private void imprimirLabels(String nombrePaso) {
         JLabel nuevoLabel = new JLabel(nombrePaso);
@@ -211,10 +210,9 @@ public class PanelDetallesPaso extends JPanel {
      * la fecha.
      * </p>
      * Al habilitar el campo fecha se muestra la fecha del sistema. </p>
-     * 
-     * @param evt
-     *            evento que indica si se presiona el radio botón
-     *            <strong>Sí</strong>.
+     *
+     * @param evt evento que indica si se presiona el radio botón
+     * <strong>Sí</strong>.
      */
     private void habilitarFecha(ItemEvent evt) {
         JRadioButton fuente = (JRadioButton) evt.getSource();
@@ -224,12 +222,11 @@ public class PanelDetallesPaso extends JPanel {
     }
 
     /**
-     * Agrega un evento a cada paso específico para poder inhabilitar el campo de
-     * la fecha. Se asigna el valor de la fecha como nula.
-     * 
-     * @param evt
-     *            Evento que indica si se presiona el radio botón
-     *            <Strong>No</strong>.
+     * Agrega un evento a cada paso específico para poder inhabilitar el campo
+     * de la fecha. Se asigna el valor de la fecha como nula.
+     *
+     * @param evt Evento que indica si se presiona el radio botón
+     * <Strong>No</strong>.
      */
     private void inhabilitarFecha(ItemEvent evt) {
         JRadioButton evento = (JRadioButton) evt.getSource();

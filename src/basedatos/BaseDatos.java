@@ -193,7 +193,7 @@ public class BaseDatos {
                 + "repeticion NUMERIC NULL)";
         realizarAccion(instruccion);
         //Falta
-        // crear tabla tramites especificos y pasos especificos
+        // crear tabla tramites específicos y pasos específicos
         instruccion = "CREATE TABLE tramites_especificos ("
                 + "idRegistro NUMERIC UNIQUE NOT NULL, Nombre_del_solicitante VARCHAR(100) NOT NULL, "
                 + "Título VARCHAR(100) NOT NULL, "
@@ -202,7 +202,7 @@ public class BaseDatos {
                 + "Estado VARCHAR(100) NOT NULL)";
         realizarAccion(instruccion);
 
-        //crear tabla tramites especificos_campos
+        //crear tabla tramites específicos_campos
         instruccion = "CREATE TABLE tramites_especificos_campos ("
                 + "idCampo_IdRegistro_tramiteEspec NUMERIC,"
                 + "idCampo_numCampoMeta_espec NUMERIC,"

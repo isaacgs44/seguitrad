@@ -21,7 +21,8 @@ import com.toedter.calendar.JDateChooser;
 
 import lib.JIntegerTextField;
 import dominio.Campo;
-import java.util.StringTokenizer;
+import java.text.DateFormat;
+import java.text.ParseException;
 
 /**
  * Panel que muestra los valores, el nombre y el tipo de cada campo de un
@@ -196,11 +197,11 @@ public class PanelCampo extends JPanel {
                             }
                         }
                     }
-				//ADD
-				if (c.getNombreCampo().equalsIgnoreCase("Estado")) {
-					nuevoComboBox.setEnabled(false);
-				}
-				//Fin ADD
+                    //ADD
+                    if (c.getNombreCampo().equalsIgnoreCase("Estado")) {
+                        nuevoComboBox.setEnabled(false);
+                    }
+                    //Fin ADD
                     panelContenedor.add(nuevoComboBox);
                     componentes.add(nuevoComboBox);
                     this.add(panelContenedor);
@@ -217,15 +218,6 @@ public class PanelCampo extends JPanel {
                         nuevoModelo.addElement(valoresLista[i]);
                     }
                     if (valores != null) {
-                        //------------------------------------------
-
-//                        StringTokenizer tokens = new StringTokenizer(valores.get(index)[0], "/");
-//                        opciones = new String[tokens.countTokens()];
-//            		while (tokens.hasMoreTokens()) {
-//                        	opciones[posicion] = tokens.nextToken().trim();
-//                		posicion++;
-//                        }
-
                         char[] arreglo = valores.get(index)[0].toCharArray();
                         int cont = 0;
                         ArrayList<Integer> separacion = new ArrayList<>();
@@ -235,15 +227,11 @@ public class PanelCampo extends JPanel {
                                 cont++;
                             }
                         }
-                        System.out.println("contador: " + cont);
                         String[] valoresIndices = new String[cont + 1];
                         int inicio = 0;
                         int fin = 0;
 
-                        System.out.println("Valor: " + valores.get(index)[0]);
-                        System.out.println("Tamaño separacion: " + separacion.size());
                         for (int z = 0; z < separacion.size(); z++) {
-                            System.out.println("indices: " + separacion.get(z));
                             fin = separacion.get(z) - 1;
                             valoresIndices[z] = valores.get(index)[0].substring(inicio, fin);
                             inicio = separacion.get(z) + 2;
@@ -253,13 +241,6 @@ public class PanelCampo extends JPanel {
                                 valoresIndices[++z] = valores.get(index)[0].substring(inicio, fin);
                             }
                         }
-
-                        System.out.println("-------------------Tamaño INDICES: " + valoresIndices.length);
-                        for (int j = 0; j < valoresIndices.length; j++) {
-                            System.out.println(j + ".- INDICE: " + valoresIndices[j]);
-                        }
-
-                        //-----------------------------
                         String seleccion[] = valoresIndices;
                         int[] indices = new int[seleccion.length];
                         for (int i = 0; i < valoresLista.length; i++) {
@@ -319,18 +300,14 @@ public class PanelCampo extends JPanel {
     }
 
     public static Date obtenerFecha(String fecha) {
-        try{
-        System.out.println("Fecha: " + fecha);
-        StringTokenizer tokens = new StringTokenizer(fecha, "/");
-        String[] datos = new String[tokens.countTokens()];
-        int i = 0;
-        while (tokens.hasMoreTokens()) {
-            datos[i] = tokens.nextToken().trim();
-            i++;
-        }
-        return new Date(Integer.parseInt(datos[2]) - 1900, Integer.parseInt(datos[1]) - 1, Integer.parseInt(datos[0]));
-    }
-        catch(NullPointerException e){
+        DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
+        try {
+            if (fecha != null) {
+                return formato.parse(fecha);
+            } else {
+                return null;
+            }
+        } catch (ParseException ex) {
             return null;
         }
     }

@@ -1,5 +1,6 @@
 package gui;
 
+import dominio.ListaTramites;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -12,9 +13,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import dominio.Tramite;
 import dominio.TramiteEspecifico;
 
+/**
+ * Permite ver los detalles de un trámite específico.
+ *
+ */
 public class DialogoDetalles extends JDialog implements ActionListener {
 
     private static final long serialVersionUID = -7127205367581348873L;
@@ -26,13 +30,19 @@ public class DialogoDetalles extends JDialog implements ActionListener {
     private JLabel etiquetaVaciaEstado;
     private JPanel camposExtras;
     private TramiteEspecifico tramiteEspecifico;
-    private Tramite tramite;
 
+    /**
+     * Constructor que recibe los objetos necesarios para extraer la información
+     * del trámite y del trámite específico.
+     *
+     * @param ventanaPrincipal Ventana sobre la que se mostrará el diálogo.
+     * @param tramiteEspecifico Almacena el trámite específico con el que se
+     * está trabajando.
+     */
     public DialogoDetalles(VentanaPrincipal ventanaPrincipal, TramiteEspecifico tramiteEspecifico) {
         super(ventanaPrincipal, "Detalles del trámite", true);
         setLayout(null);
         this.tramiteEspecifico = tramiteEspecifico;
-        tramite = ventanaPrincipal.getLista().getTramite();
 
         JLabel etiquetaNombreSolicitante = new JLabel("Nombre del solicitante: ");
         etiquetaNombreSolicitante.setBounds(20, 30, 150, 50);
@@ -90,6 +100,12 @@ public class DialogoDetalles extends JDialog implements ActionListener {
         setVisible(true);
     }
 
+    /**
+     * Método para llenar la interfáz a partir de la lista de valores que se
+     * almacenó al abrir el trámite.
+     *
+     * @see ListaTramites#abrirArchivo()
+     */
     private void inicializar() {
         etiquetaVaciaNombre.setText(tramiteEspecifico.getValores().get(0)[0]);
         etiquetaVaciaTitulo.setText(tramiteEspecifico.getValores().get(1)[0]);
@@ -97,10 +113,10 @@ public class DialogoDetalles extends JDialog implements ActionListener {
         etiquetaVaciaFechaFin.setText(tramiteEspecifico.getValores().get(3)[0]);
         etiquetaVaciaEstado.setText(tramiteEspecifico.getValores().get(4)[0]);
 
-        int numeroCampos = tramite.getCampos().size()-5;
+        int numeroCampos = tramiteEspecifico.getCampos().size() - 5;
         camposExtras.setLayout(new GridLayout(numeroCampos, 2, 1, 5));
-        for (int i = 5; i < tramite.getCampos().size(); i++) {
-            JLabel etiqueta = new JLabel(tramite.getCampos().get(i).getNombreCampo() + ":");
+        for (int i = 5; i < tramiteEspecifico.getCampos().size(); i++) {
+            JLabel etiqueta = new JLabel(tramiteEspecifico.getCampos().get(i).getNombreCampo() + ":");
             etiqueta.setPreferredSize(new Dimension(150, 30));
             camposExtras.add(etiqueta);
             JLabel valor = new JLabel(tramiteEspecifico.getValores().get(i)[0]);
@@ -108,6 +124,16 @@ public class DialogoDetalles extends JDialog implements ActionListener {
         }
     }
 
+    /**
+     * Método que escucha los eventos de los botones.
+     * <p>
+     * Este metodo ejecuta las acciones/eventos que se hayan establecido para un
+     * determinado botón.
+     * </p>
+     *
+     * @param e Almacena las acciones que el botón invoque cuando el usuario
+     * interactúa con algún botón.
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(cerrarBoton)) {

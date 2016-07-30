@@ -1,6 +1,5 @@
 package gui;
 
-import basedatos.BaseDatos;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,11 +30,11 @@ import dominio.Campo;
 import dominio.Consulta;
 import dominio.Tramite;
 import dominio.TramiteEspecifico;
-import excepcion.BaseDatosException;
 import excepcion.TramiteException;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+import javax.swing.table.TableModel;
 import lib.JIntegerTextField;
 
 public class DialogoNuevaConsulta extends JDialog implements ActionListener {
@@ -56,7 +55,7 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
     private JButton detallesBoton;
     private JTable tablaConsulta;
     private DefaultTableModel modeloTablaConsulta;
-    private final String[] columnNames = {"Nombre ", "Título", "Fecha de inicio",
+    private final String[] columnNames = {"id", "Nombre ", "Título", "Fecha de inicio",
         "Fecha de fin", "Estado"};
 
     private JLabel etiquetaValores;
@@ -76,7 +75,6 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
     private DefaultListModel<String> modeloValoresLista;
     private JScrollPane scrollValoresLista;
     private JLabel etiquetaAyudaLista;
-
     private Tramite tramite;
     private Consulta consulta;
     private VentanaPrincipal ventanaPrincipal;
@@ -171,6 +169,7 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         scrollCriteriosBusqueda.setBounds(150, 230, 250, 140);
         scrollCriteriosBusqueda.setViewportView(criteriosBusquedaList);
         criteriosBusquedaList.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getSource().equals(criteriosBusquedaList)) {
                     if (e.getClickCount() == 2) {
@@ -219,7 +218,48 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
 
         Object[][] data = {};
         modeloTablaConsulta = new DefaultTableModel(data, columnNames);
-        tablaConsulta = new JTable(modeloTablaConsulta);
+        tablaConsulta = new JTable(modeloTablaConsulta) {
+            /**
+             *
+             */
+            private static final long serialVersionUID = 7849550401487528022L;
+
+            @Override
+            public boolean isCellEditable(int rowIndex, int vColIndex) {
+                return false;
+            }
+        }; //return false: Desabilitar edición de celdas.
+        tablaConsulta.getColumnModel().getColumn(0).setMaxWidth(0); // ocultamos columna de id del trÃ¡mite especÃ­fico
+        tablaConsulta.getColumnModel().getColumn(0).setMinWidth(0);
+        tablaConsulta.getTableHeader().getColumnModel().getColumn(0).setMaxWidth(0);
+        tablaConsulta.getTableHeader().getColumnModel().getColumn(0).setMinWidth(0);
+        tablaConsulta.getColumnModel().getColumn(0).setPreferredWidth(0);
+        tablaConsulta.getColumnModel().getColumn(0).setResizable(false);
+        tablaConsulta.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    detallesBoton.doClick();
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+
         JScrollPane scrollPane = new JScrollPane(tablaConsulta);
         scrollPane.setBounds(25, 450, 700, 140);
         add(scrollPane);
@@ -236,11 +276,7 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                try {
-                    cerrar();
-                } catch (BaseDatosException ex) {
-                    Logger.getLogger(DialogoNuevaConsulta.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                cerrar();
             }
         });
         setSize(1020, 730);
@@ -285,7 +321,6 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                 String criterio = c.getNombreCampo();
                 switch (c.getTipo()) {
                     case FECHA:
-
                         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
                         if (!valores[0].isEmpty()) {
                             criterio += " >= " + formato.format(new Date(Long.parseLong(valores[0])));
@@ -306,13 +341,14 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                         criterio += " = " + valores[0];
                         break;
                     case OPCMULT:
-                        criterio += " = ";
-                        for (int indice = 0; indice < valores.length; indice++) {
-                            if (indice != 0) {
-                                criterio += " + ";
-                            }
-                            criterio += valores[indice];
-                        }
+                        criterio += " = " + valores[0].replace("/", "+");
+//                        criterio += " = ";
+//                        for (int indice = 0; indice < valores.length; indice++) {
+//                            if (indice != 0) {
+//                                criterio += " + ";
+//                            }
+//                            criterio += valores[indice];
+//                        }
                         break;
                     case TEXTO:
                         criterio += " = " + valores[0];
@@ -337,29 +373,13 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         } else if (e.getSource().equals(quitarBoton)) {
             quitar();
         } else if (e.getSource().equals(realizarBusquedaBoton)) {
-            try {
-                realizarBusqueda();
-            } catch (BaseDatosException | SQLException ex) {
-                Logger.getLogger(DialogoNuevaConsulta.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            realizarBusqueda();
         } else if (e.getSource().equals(guardarConsultaBoton)) {
-            try {
-                guardarConsulta();
-            } catch (BaseDatosException ex) {
-                Logger.getLogger(DialogoNuevaConsulta.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            guardarConsulta();
         } else if (e.getSource().equals(nuevaConsultaBoton)) {
-            try {
-                iniciarConsulta();
-            } catch (BaseDatosException ex) {
-                Logger.getLogger(DialogoNuevaConsulta.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            iniciarConsulta();
         } else if (e.getSource().equals(cerrarBoton)) {
-            try {
-                cerrar();
-            } catch (BaseDatosException ex) {
-                Logger.getLogger(DialogoNuevaConsulta.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            cerrar();
         } else if (e.getSource().equals(detallesBoton)) {
             mostrarDetalles();
         }
@@ -467,6 +487,13 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         }
     }
 
+    /**
+     * Agrega criterio de búsqueda a la lista. Obtiene los valores de la
+     * interfaz y los añade a la lista de criterios, comprobando que si el
+     * criterio se encuentra repetido, no puede tener el mismo valor.
+     *
+     * @autor isaac Garay
+     */
     private void agregarCriterio() {
         // obtener el campo seleccionado
         Campo campo = (Campo) comboCampos.getSelectedItem();
@@ -526,17 +553,31 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                     JOptionPane.showMessageDialog(null, "Debe seleccionar al menos un valor para buscar", "Agregar criterio", JOptionPane.ERROR_MESSAGE);
                     return;
                 } else {
-                    valores = new String[valoresLista.getSelectedIndices().length];
+                    valores = new String[1];
+                    valores[0] = "";
                     criterio += " = ";
                     int[] indices = valoresLista.getSelectedIndices();
-                    for (int i = 0; i < valores.length; i++) {
-                        valores[i] = modeloValoresLista.getElementAt(indices[i]);
+                    for (int i = 0; i < indices.length; i++) {
                         if (i != 0) {
                             criterio += " + ";
+                            valores[0] += " / " + modeloValoresLista.getElementAt(indices[i]);
+                        } else {
+                            valores[0] += modeloValoresLista.getElementAt(indices[i]);
                         }
-                        criterio += valores[i];
+                        criterio += modeloValoresLista.getElementAt(indices[i]);
                     }
                     valoresLista.removeSelectionInterval(indices[0], indices[indices.length - 1]);
+//                    valores = new String[valoresLista.getSelectedIndices().length];
+//                    criterio += " = ";
+//                    int[] indices = valoresLista.getSelectedIndices();
+//                    for (int i = 0; i < valores.length; i++) {
+//                        valores[i] = modeloValoresLista.getElementAt(indices[i]);
+//                        if (i != 0) {
+//                            criterio += " + ";
+//                        }
+//                        criterio += valores[i];
+//                    }
+//                    valoresLista.removeSelectionInterval(indices[0], indices[indices.length - 1]);
                 }
                 break;
             case FECHA:
@@ -564,11 +605,178 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                 break;
         }
         // agregar a la lista y a consulta
-        modeloCriteriosBusqueda.addElement(criterio);
-        consulta.agregarCampo(campo, valores);
-        if (!hayCambios) {
-            hayCambios = true;
-            setTitle("* " + getTitle());
+        boolean resultado = true;
+
+        ArrayList<Boolean> validar = new ArrayList<>();
+        if (consulta.getCampos().size() == 0) {
+            consulta.agregarCampo(campo, valores);
+            modeloCriteriosBusqueda.addElement(criterio);
+            resultado = false;
+        } else {
+            int i = 0;
+            switch (campo.getTipo()) {
+                case TEXTO:
+                case OPCEXCL:
+                    i = 0;
+                    for (Campo c : consulta.getCampos()) {
+                        if ("Texto".equals(c.getTipo().getTipo()) || "Opciones excluyentes".equals(c.getTipo().getTipo())) {
+                            if (campo.getNombreCampo().equals(c.getNombreCampo())) {
+                                if (consulta.getValores().get(i)[0].equals(valores[0])) {
+                                    JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                    validar.add(false);
+                                } else {
+                                    validar.add(true);
+                                }
+                            } else {
+                                validar.add(true);
+                            }
+                        }
+                        i++;
+                    }
+                    break;
+
+                case NUMERO:
+                    i = 0;
+                    for (Campo c : consulta.getCampos()) {
+                        if ("NÃºmero".equals(c.getTipo().getTipo())) {
+                            if (campo.getNombreCampo().equals(c.getNombreCampo())) {
+                                if (valores[0].equals("")) {
+                                    if (consulta.getValores().get(i)[0].equals("")) {
+                                        if (consulta.getValores().get(i)[1].equals(valores[1])) {
+                                            JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                            validar.add(false);
+                                        } else {
+                                            validar.add(true);
+                                        }
+                                    }
+                                } else if (valores[1].equals("")) {
+                                    if (consulta.getValores().get(i)[1].equals("")) {
+                                        if (consulta.getValores().get(i)[0].equals(valores[0])) {
+                                            JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                            validar.add(false);
+                                        } else {
+                                            validar.add(true);
+                                        }
+                                    }
+
+                                } else if (!consulta.getValores().get(i)[0].equals("") && !consulta.getValores().get(i)[1].equals("")) {
+                                    if (consulta.getValores().get(i)[0].equals(valores[0]) && consulta.getValores().get(i)[1].equals(valores[1])) {
+                                        JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                        validar.add(false);
+                                    } else {
+                                        validar.add(true);
+                                    }
+                                }
+                            } else {
+                                validar.add(true);
+                            }
+                        }
+                        i++;
+                    }
+                    break;
+
+                case FECHA:
+                    i = 0;
+                    for (Campo c : consulta.getCampos()) {
+                        if ("Fecha".equals(c.getTipo().getTipo())) {
+                            if (campo.getNombreCampo().equals(c.getNombreCampo())) {
+                                String fechaSt;
+                                String fechaIt;
+                                String fechaI;
+                                String fechaS;
+                                DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
+                                if (valores[0].equals("")) { // insertÃ³  sÃ³lo fecha superior
+                                    if (consulta.getValores().get(i)[0].equals("")) { // por cada elemento con fecha superior
+                                        fechaSt = formato.format(new Date(Long.parseLong(consulta.getValores().get(i)[1])));
+                                        fechaS = formato.format(new Date(Long.parseLong(valores[1])));
+                                        if (fechaSt.equals(fechaS)) {
+                                            JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                            validar.add(false);
+                                        } else {
+                                            validar.add(true);
+                                        }
+                                    }
+                                } else if (valores[1].equals("")) { // insertÃ³ sÃ³lo fecha inferior
+                                    if (consulta.getValores().get(i)[1].equals("")) { // por cada elemento con fecha inferior
+                                        fechaIt = formato.format(new Date(Long.parseLong(consulta.getValores().get(i)[0])));
+                                        fechaI = formato.format(new Date(Long.parseLong(valores[0])));
+                                        if (fechaIt.equals(fechaI)) {
+                                            JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                            validar.add(false);
+                                        } else {
+                                            validar.add(true);
+                                        }
+                                    }
+                                } else if (!consulta.getValores().get(i)[1].equals("") && !consulta.getValores().get(i)[0].equals("")) { // por cada elemento que contenga ambas fechas
+                                    fechaIt = formato.format(new Date(Long.parseLong(consulta.getValores().get(i)[0])));
+                                    fechaI = formato.format(new Date(Long.parseLong(valores[0])));
+                                    fechaSt = formato.format(new Date(Long.parseLong(consulta.getValores().get(i)[1])));
+                                    fechaS = formato.format(new Date(Long.parseLong(valores[1])));
+                                    if (fechaIt.equals(fechaI) && fechaSt.equals(fechaS)) {
+                                        JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                                        validar.add(false);
+                                    } else {
+                                        validar.add(true);
+                                    }
+                                }
+
+                            } else {
+                                validar.add(true);
+                            }
+                        }
+                        i++;
+                    }
+                    break;
+
+                case OPCMULT:
+                    boolean repetido;
+                    ArrayList<Boolean> resultados = new ArrayList<>();
+                    i = 0;
+                    for (Campo c : consulta.getCampos()) {
+                        if ("Opciones mÃºltiples".equals(c.getTipo().getTipo())) {
+                            if (campo.getNombreCampo().equals(c.getNombreCampo())) {
+                                if (consulta.getValores().get(i).length == valores.length) {
+                                    repetido = true;
+                                    for (int j = 0; j < consulta.getValores().get(i).length; j++) {
+                                        if (consulta.getValores().get(i)[j].equals(valores[j])) {
+                                            repetido &= true;
+                                        } else {
+                                            repetido &= false;
+                                        }
+                                    }
+                                    resultados.add(repetido);
+                                } else {
+                                    resultados.add(false);
+                                }
+                            }
+                        }
+
+                        i++;
+                    }
+                    repetido = false;
+                    for (Boolean b : resultados) {
+                        repetido |= b;
+                    }
+                    if (repetido) {
+                        JOptionPane.showMessageDialog(null, "Valor repetido en criterio", "Aviso", JOptionPane.ERROR_MESSAGE);
+                        validar.add(false);
+                    } else {
+                        validar.add(true);
+                    }
+                    break;
+            }
+        }
+
+        for (Boolean b : validar) {
+            resultado &= b;
+        }
+        if (resultado) {
+            consulta.agregarCampo(campo, valores);
+            modeloCriteriosBusqueda.addElement(criterio);
+            if (!hayCambios) {
+                hayCambios = true;
+                setTitle("* " + getTitle());
+            }
         }
     }
 
@@ -605,11 +813,28 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                     valoresCombo.setSelectedItem(valores[0]);
                     break;
                 case OPCMULT:
-                    int[] indices = new int[valores.length];
-                    for (int i = 0; i < valores.length; i++) {
-                        indices[i] = modeloValoresLista.indexOf(valores[i]);
+                    StringTokenizer tokens = new StringTokenizer(valores[0], "/");
+                    String[] seleccion = new String[tokens.countTokens()];
+                    int k = 0;
+                    while (tokens.hasMoreTokens()) {
+                        seleccion[k] = tokens.nextToken().trim();
+                        k++;
                     }
-                    valoresLista.setSelectedIndices(indices);
+                    String[] valoresDefecto = campo.getValorDefectoOpciones();
+                    int[] indices = new int[seleccion.length];
+                    for (int i = 0; i < valoresDefecto.length; i++) {
+                        for (int j = 0; j < seleccion.length; j++) {
+                            if (valoresDefecto[i].equals(seleccion[j])) {
+                                indices[j] = i;
+                            }
+                        }
+                        valoresLista.setSelectedIndices(indices);
+                    }
+//                    int[] indices = ;
+//                    for (int i = 0; i < valores.length; i++) {
+//                        indices[i] = modeloValoresLista.indexOf(valores[i]);
+//                    }
+//                    valoresLista.setSelectedIndices(indices);
                     break;
                 case TEXTO:
                     valoresTexto.setText(valores[0]);
@@ -640,28 +865,36 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
             }
         }
     }
-    
-     /**
-     * Método que ejecuta la consulta y cambia el modelo de la tabla de la interfaz
+
+    /**
+     * Ejecuta una consulta en la lista de trámites específicos. Obtiene una
+     * lista de trÃ¡mites especÃ­ficos que cumpla con los criterios de bÃºsqueda
+     * y los muestra en <code>tablaConsulta</code> ordenados por Estado.
      *
-     * @see Consulta#ejecutarConsulta(java.util.ArrayList) 
+     * @see Consulta#ejecutarConsulta(java.util.ArrayList)
      * @see VentanaPrincipal#getLista()
-     * 
-     * @throws excepcion.BaseDatosException
-     * @throws java.sql.SQLException
+     * @see #crearModeloTablaConsultas(java.util.ArrayList)
      *
-     * @autor isaac
+     * @autor isaac Garay
      */
-    private void realizarBusqueda() throws BaseDatosException, SQLException {
+    private void realizarBusqueda() {
         if (!modeloCriteriosBusqueda.isEmpty()) {
-            this.tablaConsulta.setModel(consulta.ejecutarConsulta(ventanaPrincipal.getLista().getListaTramitesEsp()));
+            ArrayList<TramiteEspecifico> tramitesEncontrados;
+            tramitesEncontrados = consulta.ejecutarConsulta(ventanaPrincipal.getLista().getListaTramitesEsp());
+            tablaConsulta.setModel(crearModeloTablaConsultas(tramitesEncontrados));
+            tablaConsulta.getColumnModel().getColumn(0).setMaxWidth(0); // ocultamos columna de id del trÃ¡mite especÃ­fico
+            tablaConsulta.getColumnModel().getColumn(0).setMinWidth(0);
+            tablaConsulta.getTableHeader().getColumnModel().getColumn(0).setMaxWidth(0);
+            tablaConsulta.getTableHeader().getColumnModel().getColumn(0).setMinWidth(0);
+            tablaConsulta.getColumnModel().getColumn(0).setPreferredWidth(0);
+            tablaConsulta.getColumnModel().getColumn(0).setResizable(false);
         } else {
             JOptionPane.showMessageDialog(this, "Primero debe agregar criterios de búsqueda."
                     + "\nFavor de intentarlo de nuevo.", "Realizar búsqueda", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void guardarConsulta() throws BaseDatosException {
+    private void guardarConsulta() {
         if (hayCambios) {
             if (!modeloCriteriosBusqueda.isEmpty()) {
                 String nombre = (String) JOptionPane.showInputDialog(this, "Escriba un nombre para reconocer a esta consulta",
@@ -673,7 +906,6 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
                             consulta.setNuevo(true);
                             ventanaPrincipal.getLista().agregarConsulta(consulta);
                             ventanaPrincipal.getLista().setHayCambios(true);
-                            setTitle(nombre + " - Consulta");
                             hayCambios = false;
                             JOptionPane.showMessageDialog(this, "Consulta guardada con éxito", "Guardar consulta", JOptionPane.INFORMATION_MESSAGE);
                         } catch (TramiteException e) {
@@ -694,7 +926,7 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         }
     }
 
-    private void iniciarConsulta() throws BaseDatosException {
+    private void iniciarConsulta() {
         // guardar antes de hacer una nueva consulta
         if (hayCambios && !modeloCriteriosBusqueda.isEmpty()) {
             int respuesta = JOptionPane.showConfirmDialog(this,
@@ -716,7 +948,7 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         setTitle("Nueva consulta");
     }
 
-    private void cerrar() throws BaseDatosException {
+    private void cerrar() {
         if (hayCambios && !modeloCriteriosBusqueda.isEmpty()) {
             int respuesta = JOptionPane.showConfirmDialog(this,
                     "¿Desea guardar la consulta?"
@@ -733,10 +965,94 @@ public class DialogoNuevaConsulta extends JDialog implements ActionListener {
         }
     }
 
+    /**
+     * Manda a la ventana de Seguimiento con el trámite seleccionado.
+     *
+     * @see #obtenerTramiteEspecifico(int)
+     *
+     * @autor isaac Garay
+     */
     private void mostrarDetalles() {
-        // Obtener la fila seleccionada
-        // validar que haya algo seleccionado
-        // Obtener el trámite específico seleccionado
-        new DialogoSeguimiento(ventanaPrincipal, null);
+        if (tablaConsulta.getSelectedRow() != -1) {
+            int idRegistro = Integer.parseInt(tablaConsulta.getValueAt(tablaConsulta.getSelectedRow(), 0).toString());
+            new DialogoSeguimiento(ventanaPrincipal, obtenerTramiteEspecifico(idRegistro));
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione un registro", "Seguitrad", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    /**
+     * Obtiene un Trámite epecífico por medio de su idTrámite.
+     *
+     * @param idRegistro id del trámite que se quiere buscar.
+     * @return el trámite que coincide el id o null si no hay coincidencia.
+     *
+     * @autor isaac Garay
+     */
+    private TramiteEspecifico obtenerTramiteEspecifico(int idRegistro) {
+        for (TramiteEspecifico t : consulta.getTramitesEncontrados()) {
+            if (t.getIdTramite() == idRegistro) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Crea un TableModel para mostrar los resultados de la consulta.
+     *
+     * @param tramitesEncontrados Contiene la lista de registros que se van a
+     * mostrar en la tabla.
+     * @return Modelo de tabla ordenado por Estado del trÃ¡mite especÃ­fico
+     * @autor isaac Garay
+     */
+    private TableModel crearModeloTablaConsultas(ArrayList<TramiteEspecifico> tramitesEncontrados) {
+        ArrayList<String[]> datosTabla = new ArrayList<>();
+        Object[][] data = null;
+        Campo c = ventanaPrincipal.getLista().getTramite().buscarCampo("Estado");
+        String[] estados = c.getValorDefectoOpciones();
+        ArrayList<String[]> elementos = new ArrayList<>();
+        for (TramiteEspecifico t : tramitesEncontrados) {
+            int index;
+            String[] valores = new String[6];
+            String id = "" + t.getIdTramite();
+            valores[0] = id;
+            index = t.buscarCampo("Nombre del solicitante");
+            valores[1] = t.obtenerValores(index)[0];
+            index = t.buscarCampo("TÃ­tulo");
+            valores[2] = t.obtenerValores(index)[0];
+            index = t.buscarCampo("Fecha de inicio");
+            valores[3] = t.obtenerValores(index)[0];
+            index = t.buscarCampo("Fecha de fin");
+            valores[4] = t.obtenerValores(index)[0];
+            index = t.buscarCampo("Estado");
+            valores[5] = t.obtenerValores(index)[0];
+            datosTabla.add(valores);
+        }
+
+        //Ordenamos por estados
+        for (String s : estados) {
+            for (String[] datos : datosTabla) {
+                if (s.equals(datos[5])) {
+                    elementos.add(datos);
+                }
+            }
+        }
+
+        datosTabla = elementos;
+
+        data = new Object[datosTabla.size()][6];
+        int i;
+        for (i = 0; i < datosTabla.size(); i++) {
+            data[i] = datosTabla.get(i);
+        }
+
+        if (i != 0) {
+            JOptionPane.showMessageDialog(null, i + " registros coinciden con sus criterios de bÃºsqueda", "EstadÃ­stica", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "No hay registros que cumplan sus criterios de bÃºsqueda", "EstadÃ­stica", JOptionPane.INFORMATION_MESSAGE);
+
+        }
+        return new DefaultTableModel(data, columnNames);
     }
 }

@@ -5,9 +5,8 @@ import java.io.File;
 import basedatos.BaseDatos;
 import excepcion.BaseDatosException;
 import excepcion.TramiteException;
-import javax.swing.JPanel;
 
-public class Paso extends JPanel implements Comparable<Paso> {
+public class Paso implements Comparable<Paso> {
 
     private String nombrePaso;
     private int numPaso;
@@ -209,7 +208,7 @@ public class Paso extends JPanel implements Comparable<Paso> {
         return -1;
     }
 
-    /** 
+    /**
      * @see java.lang.Object#toString()
      */
     @Override

@@ -19,9 +19,9 @@ public class TramiteEspecifico {
     private boolean modificar;
     private boolean cambioEstado;
     private BaseDatos bd;
-    
+
     /**
-     * 
+     *
      */
     public TramiteEspecifico() {
         idTramite = 0;
@@ -71,16 +71,16 @@ public class TramiteEspecifico {
         valores.add(valor);
     }
 
-	//ADD
-	public void modificarCampo(Campo campo, String[] valor) {
-		int posicion = buscarCampo(campo.getNombreCampo());
-		if (posicion != -1) {
-			valores.set(posicion, valor);
-		} else {
-			agregarCampo(campo, valor);
-		}
-	}
-	
+    //ADD
+    public void modificarCampo(Campo campo, String[] valor) {
+        int posicion = buscarCampo(campo.getNombreCampo());
+        if (posicion != -1) {
+            valores.set(posicion, valor);
+        } else {
+            agregarCampo(campo, valor);
+        }
+    }
+
     public void quitarCampo(int posicion) {
         campos.remove(posicion);
         valores.remove(posicion);
@@ -122,46 +122,65 @@ public class TramiteEspecifico {
     public boolean validarTramiteEspecifico() throws TramiteEspecificoException {
         return false;
     }
-    
+
     public void insertarTramiteEspecifico(BaseDatos bd) throws BaseDatosException, SQLException {
         this.bd = bd;
         //insertamos campos por default
-        String[] valoresTramiteesp = new String[5];
         String consulta = "INSERT INTO tramites_especificos ('idRegistro','Nombre_del_solicitante', 'Título',"
                 + "'Fecha_de_inicio', 'Fecha_de_fin', 'Estado') VALUES ( " + idTramite + ", ";
-        for (int i = 0; i < 5; i++) {
-            String arregloTemporal[] = valores.get(i);
-            valoresTramiteesp[i] = arregloTemporal[0];
+//        for (int i = 0; i < 5; i++) {
+//            String arregloTemporal[] = valores.get(i);
+//            valoresTramiteesp[i] = arregloTemporal[0];
+//        }
+        int indiceNombre = 0;
+        int indiceTitulo = 0;
+        int indiceFechaInicio = 0;
+        int indiceFechaFin = 0;
+        int indiceEstado = 0;
+        for (Campo c : campos) {
+            if (c.getNombreCampo().equals("Nombre del solicitante")) {
+                indiceNombre = c.getNumCampo();
+            }
+            if (c.getNombreCampo().equals("Título")) {
+                indiceTitulo = c.getNumCampo();
+            }
+            if (c.getNombreCampo().equals("Fecha de inicio")) {
+                indiceFechaInicio = c.getNumCampo();
+            }
+            if (c.getNombreCampo().equals("Fecha de fin")) {
+                indiceFechaFin = c.getNumCampo();
+            }
+            if (c.getNombreCampo().equals("Estado")) {
+                indiceEstado = c.getNumCampo();
+            }
         }
-        consulta += "'" + valoresTramiteesp[0] + "', '" + valoresTramiteesp[1] + "',"
-                + " '" + valoresTramiteesp[2] + "', '" + valoresTramiteesp[3] + "', "
-                + "'" + valoresTramiteesp[4] + "')";
+        consulta += "'" + valores.get(indiceNombre)[0] + "', '" + valores.get(indiceTitulo)[0] + "',"
+                + " '" + valores.get(indiceFechaInicio)[0] + "', '" + valores.get(indiceFechaFin)[0] + "', "
+                + "'" + valores.get(indiceEstado)[0] + "')";
         bd.realizarAccion(consulta);
-        
+
         //insertamos valores extras
         if (campos.size() > 5) {
-            int idRegistro = obtenerIdRegistro("idRegistro","tramites_especificos") - 1;
+            int idRegistro = obtenerIdRegistro("idRegistro", "tramites_especificos") - 1;
             insertarTramiteEspecificocampos(idRegistro);
         }
-        
-        
+
         //++++++ TRABAJANDO +++++++++ insertamos pasos específicos
         String consultaColumnas;
         String consultaValores;
         DateFormat formato = DateFormat.getDateInstance(DateFormat.MEDIUM);
-        
-        for(PasoEspecifico p : pasosEspecificos ){
+
+        for (PasoEspecifico p : pasosEspecificos) {
             consultaColumnas = "INSERT INTO pasos_especificos ('idPasoEsp','idRegistro_tramiteEsp','num_paso'";
-            consultaValores = " VALUES ( "+ obtenerIdRegistro("idPasoEsp","pasos_especificos") + "," + getIdTramite() + "," + p.getNumPaso();
-            
-            if(p.getFechaLimite()!=null){
+            consultaValores = " VALUES ( " + obtenerIdRegistro("idPasoEsp", "pasos_especificos") + "," + getIdTramite() + "," + p.getNumPaso();
+
+            if (p.getFechaLimite() != null) {
                 consultaColumnas += ",'fecha_limite'";
                 consultaValores += ", '" + formato.format(p.getFechaLimite()) + "'";
             }
-                consultaColumnas += ",'realizado')";
-                consultaValores += ",'false')";
-                System.out.println("Consulta: " + consultaColumnas+consultaValores);
-                bd.realizarAccion(consultaColumnas+consultaValores);
+            consultaColumnas += ",'realizado')";
+            consultaValores += ",'false')";
+            bd.realizarAccion(consultaColumnas + consultaValores);
         }
     }
 
@@ -180,19 +199,21 @@ public class TramiteEspecifico {
                 + "idCampo_numCampoMeta_espec','Valor')"
                 + " values (" + idRegistro + ", ";
         int i = 0;
-        String[] consultasInsertar=new String [campos.size()];
+        String[] consultasInsertar = new String[campos.size()-5];
         for (Campo c : campos) {
-            String intruccionCompleta = consulta + idcampo_Campo(c.getNombreCampo()) +" ,'"+valores.get(i)[0]+"')";
-            consultasInsertar[i]=intruccionCompleta;
-            i++;
+            if (!c.getNombreCampo().equals("Nombre del solicitante")
+                    && !c.getNombreCampo().equals("Título")
+                    && !c.getNombreCampo().equals("Fecha de inicio")
+                    && !c.getNombreCampo().equals("Fecha de fin")
+                    && !c.getNombreCampo().equals("Estado")) {
+                String intruccionCompleta = consulta + idcampo_Campo(c.getNombreCampo()) + " ,'" + valores.get(c.getNumCampo())[0] + "')";
+                consultasInsertar[i] = intruccionCompleta;
+                i++;
+            }
         }
-        for (int j = 5; j < consultasInsertar.length; j++) {
-            System.out.println(consultasInsertar[j]);
-            bd.realizarAccion(consultasInsertar[j]);
+        for (int k = 0; k < consultasInsertar.length; k++) {
+            bd.realizarAccion(consultasInsertar[k]);
         }
-        System.out.println("");
-        System.out.println("---------TRAMITE NUEVO-------------");
-        System.out.println("Nombre: " + valores.get(0)[0]);
     }
 
     public boolean actualizarTramiteEspecifico() {
@@ -207,7 +228,7 @@ public class TramiteEspecifico {
         return false;
     }
 
-    public int obtenerIdRegistro(String id,String tabla) throws BaseDatosException, SQLException {
+    public int obtenerIdRegistro(String id, String tabla) throws BaseDatosException, SQLException {
         int ultimoId = 0;
         ResultSet rs;
         rs = bd.realizarConsulta("SELECT MAX(" + id + ") FROM " + tabla);
@@ -229,14 +250,12 @@ public class TramiteEspecifico {
     public boolean isNuevo() {
         return nuevo;
     }
-    
+
     public void setNuevo(boolean nuevo) {
         this.nuevo = nuevo;
     }
-    
+
     public void modificarTramiteEspecifico(BaseDatos bd) throws BaseDatosException, SQLException {
-        System.out.println("\n--------MODIFICAR TRAMITE");
-        System.out.println("Nombre: "+valores.get(0)[0]);
         eliminarTramiteEspecifico(bd);
         //insertamos registro con nuevos valores
         insertarTramiteEspecifico(bd);
@@ -247,29 +266,21 @@ public class TramiteEspecifico {
     }
 
     void eliminarTramiteEspecifico(BaseDatos bd) throws BaseDatosException {
-        System.out.println("\n-------------ELIMINAR TRÁMITE---------------------");
-        System.out.println("Nombre: " + valores.get(0)[0]);
-        this.bd=bd;         
-        String c = "DELETE FROM tramites_especificos WHERE idRegistro='"+ idTramite +"'";
-        String c2 = "DELETE FROM pasos_especificos WHERE idRegistro_tramiteEsp='"+ idTramite +"'";
-        String c3 = "DELETE FROM tramites_especificos_campos WHERE idCampo_IdRegistro_tramiteEspec='"+ idTramite +"'";
-        
-        System.out.println("----------BORRAR TRAMITE ESPECIFICO-------------");
-        System.out.println("Nombre: " + this.valores.get(0)[0]);
-        System.out.println("ID: " + this.idTramite);
-        System.out.println("Consulta elimina tramite_esp: " + c);
-        System.out.println("Consulta elimina pasos_esp: " + c2);
-        System.out.println("Consulta elimina tramites_esp_campos " + c3);
+        this.bd = bd;
+        String c = "DELETE FROM tramites_especificos WHERE idRegistro='" + idTramite + "'";
+        String c2 = "DELETE FROM pasos_especificos WHERE idRegistro_tramiteEsp='" + idTramite + "'";
+        String c3 = "DELETE FROM tramites_especificos_campos WHERE idCampo_IdRegistro_tramiteEspec='" + idTramite + "'";
+
         bd.realizarAccion(c);
         bd.realizarAccion(c2);
         bd.realizarAccion(c3);
     }
-    
+
     public void actualizarEstadoTramEsp(BaseDatos bd) throws BaseDatosException {
-        this.bd=bd;         
-        String c = "DELETE FROM tramites_especificos WHERE idRegistro='"+ idTramite +"'";
+        this.bd = bd;
+        String c = "DELETE FROM tramites_especificos WHERE idRegistro='" + idTramite + "'";
         bd.realizarAccion(c);
-         this.bd = bd;
+        this.bd = bd;
         //insertamos campos por default
         String[] valoresTramiteesp = new String[5];
         String consulta = "INSERT INTO tramites_especificos ('idRegistro','Nombre_del_solicitante', 'Título',"
@@ -300,9 +311,4 @@ public class TramiteEspecifico {
         this.cambioEstado = cambioEstado;
     }
 
-    
-    
-    
-    
-    
 }

@@ -19,7 +19,11 @@ import lib.JIntegerTextField;
  */
 public class DialogoModificarPaso extends JPanel implements ActionListener, ItemListener {
 
-    private JTextField nombrePaso;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5406836847391738657L;
+	private JTextField nombrePaso;
     private JRadioButton radioBotonPropio;
     private JRadioButton radioBotonOtro;
     private JTextField otro;
